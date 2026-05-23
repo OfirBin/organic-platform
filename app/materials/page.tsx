@@ -118,7 +118,7 @@ export default function MaterialsPage() {
   };
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500 h-[calc(100vh-4rem)] flex flex-col">
+    <div className="p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500 min-h-[calc(100vh-4rem)] flex flex-col">
       <header>
         <h1 className="text-3xl font-bold mb-2">Study Materials</h1>
         <p className="text-sidebar-text text-sm">
@@ -166,7 +166,7 @@ export default function MaterialsPage() {
           </div>
 
           {/* Uploaded Files List */}
-          <div className="flex-1 rounded-2xl border border-sidebar-border bg-sidebar-bg flex flex-col min-h-0 shadow-sm">
+          <div className="flex-1 rounded-2xl border border-sidebar-border bg-sidebar-bg flex flex-col min-h-[400px] shadow-sm">
             <div className="p-4 border-b border-sidebar-border flex items-center gap-2">
               <Paperclip className="w-4 h-4 text-brand" />
               <h3 className="font-semibold">Uploaded Materials</h3>
