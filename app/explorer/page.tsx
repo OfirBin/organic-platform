@@ -84,11 +84,13 @@ export default function ExplorerPage() {
   const [error, setError] = useState<string | null>(null);
   const [smilesData, setSmilesData] = useState<string | null>(null);
   const [sdfData, setSdfData] = useState<string | null>(null);
-  const [scriptsLoaded, setScriptsLoaded] = useState({ smiles: false, d3mol: false });
+  const [scriptsLoaded, setScriptsLoaded] = useState({ smiles: false, d3mol: false, tesseract: false });
   
   const [isMounted, setIsMounted] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isAnalyzingImage, setIsAnalyzingImage] = useState(false);
+  const [imageWarning, setImageWarning] = useState<string | null>(null);
   
   const { resolvedTheme } = useTheme();
   
@@ -108,6 +110,7 @@ export default function ExplorerPage() {
           if (blob) {
             setImageFile(blob);
             setPreviewUrl(URL.createObjectURL(blob));
+            setImageWarning(null);
           }
         }
       }
@@ -116,9 +119,8 @@ export default function ExplorerPage() {
     return () => window.removeEventListener('paste', handlePaste);
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!query.trim()) return;
+  const runAnalysis = async (searchQuery: string) => {
+    if (!searchQuery.trim()) return;
 
     setIsLoading(true);
     setShowResults(false);
@@ -127,37 +129,109 @@ export default function ExplorerPage() {
     setSdfData(null);
 
     try {
-      // 1. Fetch SMILES from NIH CACTUS
-      const smilesRes = await fetch(`https://cactus.nci.nih.gov/chemical/structure/${encodeURIComponent(query.trim())}/smiles`);
+      // Step 1 (Name to Isomeric SMILES)
+      const nameRes = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${encodeURIComponent(searchQuery.trim())}/property/IsomericSMILES/JSON`);
       
-      if (!smilesRes.ok) {
-        throw new Error("Molecule not found. Please check the spelling or try another IUPAC name.");
+      if (!nameRes.ok) {
+        throw new Error("Name fetch failed");
       }
       
-      const smilesStr = await smilesRes.text();
-      setSmilesData(smilesStr);
-      setAnalyzedQuery(query.trim());
+      const nameData = await nameRes.json();
+      const smilesStr = nameData.PropertyTable.Properties[0].IsomericSMILES;
+      
+      if (!smilesStr) throw new Error("SMILES not found");
 
-      // 2. Fetch 3D SDF from PubChem (Graceful fallback if fails)
+      setSmilesData(smilesStr);
+      setAnalyzedQuery(searchQuery.trim());
+
+      // Step 2 (SMILES to 3D SDF)
       try {
-        const sdfRes = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/${encodeURIComponent(smilesStr)}/SDF?record_type=3d`);
-        if (sdfRes.ok) {
-          const sdfStr = await sdfRes.text();
+        const sdfRes3d = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/${encodeURIComponent(smilesStr)}/SDF?record_type=3d`);
+        if (sdfRes3d.ok) {
+          const sdfStr = await sdfRes3d.text();
           setSdfData(sdfStr);
         } else {
-          console.warn("3D SDF data not found for this molecule.");
-          setSdfData(null); // Explicitly null if not found
+          throw new Error("3D SDF failed");
         }
-      } catch (sdfErr) {
-        console.warn("Failed to fetch 3D SDF data:", sdfErr);
-        setSdfData(null);
+      } catch (sdf3dErr) {
+        // Step 3 (Fallback to 2D SDF)
+        try {
+          const sdfRes2d = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/${encodeURIComponent(smilesStr)}/SDF?record_type=2d`);
+          if (sdfRes2d.ok) {
+            const sdfStr = await sdfRes2d.text();
+            setSdfData(sdfStr);
+          } else {
+            setSdfData(null);
+          }
+        } catch (sdf2dErr) {
+          setSdfData(null);
+        }
       }
 
       setShowResults(true);
-    } catch (err: any) {
-      setError(err.message || "An unexpected error occurred.");
+    } catch (err) {
+      setError('Molecule not found or API error.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    runAnalysis(query);
+  };
+
+  const handleAnalyzeImage = async () => {
+    if (!imageFile) return;
+    setIsAnalyzingImage(true);
+    setImageWarning(null);
+    setError(null);
+
+    try {
+      // @ts-expect-error
+      if (typeof window.Tesseract !== 'undefined') {
+        // @ts-expect-error
+        const { data: { text } } = await window.Tesseract.recognize(imageFile);
+        
+        const cleanedText = text.trim();
+        // Strict check: must contain at least 3 letters, and shouldn't contain typical structure-drawing garbage characters like \
+        const isValidName = /[a-zA-Z]{3,}/.test(cleanedText) && !cleanedText.includes('\\') && !cleanedText.includes('/');
+
+        if (!isValidName) {
+          setQuery(''); // Clear the input field completely
+          setError('Structure detected or text unreadable. True image-to-structure requires a Python backend. Displaying a mock molecule.');
+          
+          // Directly render a mock complex molecule to prevent UI breaking
+          const mockSmiles = 'CC(C)CCCC=CC'; // generic fallback
+          setSmilesData(mockSmiles);
+          setAnalyzedQuery('');
+          
+          try {
+            const sdfRes3d = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/${encodeURIComponent(mockSmiles)}/SDF?record_type=3d`);
+            if (sdfRes3d.ok) {
+              setSdfData(await sdfRes3d.text());
+            } else {
+              const sdfRes2d = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/${encodeURIComponent(mockSmiles)}/SDF?record_type=2d`);
+              if (sdfRes2d.ok) setSdfData(await sdfRes2d.text());
+              else setSdfData(null);
+            }
+          } catch (err) {
+            setSdfData(null);
+          }
+          
+          setShowResults(true);
+          return; // EXIT THE FUNCTION HERE. DO NOT PROCEED TO FETCH.
+        }
+
+        setQuery(cleanedText); // Only set if it's a real word
+        await runAnalysis(cleanedText);
+      } else {
+        setError('Tesseract not loaded');
+      }
+    } catch (e) {
+      setError('Image analysis failed.');
+    } finally {
+      setIsAnalyzingImage(false);
     }
   };
 
@@ -242,6 +316,11 @@ export default function ExplorerPage() {
         strategy="lazyOnload"
         onLoad={() => setScriptsLoaded(prev => ({ ...prev, d3mol: true }))}
       />
+      <Script 
+        src="https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js" 
+        strategy="lazyOnload"
+        onLoad={() => setScriptsLoaded(prev => ({ ...prev, tesseract: true }))}
+      />
 
       <header>
         <h1 className="text-3xl font-bold mb-2">Structure & Naming Explorer</h1>
@@ -252,87 +331,113 @@ export default function ExplorerPage() {
 
       {/* Input Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <section className="p-6 rounded-2xl border border-sidebar-border bg-sidebar-bg shadow-sm flex flex-col justify-center">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Search className="w-5 h-5 text-brand" />
-            Enter IUPAC Name
-          </h2>
-          <form onSubmit={handleSubmit} className="flex gap-3">
-            <div className="relative flex-1">
-              <input
-                type="text"
-                placeholder="e.g., aspirin or benzene"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-sidebar-border bg-background focus:outline-none focus:ring-2 focus:ring-brand/50 transition-shadow"
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={!isMounted || isLoading || !query.trim()}
-              className="px-6 py-3 bg-brand text-white font-medium rounded-xl hover:bg-brand-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[120px]"
-            >
-              {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Analyze"}
-            </button>
-          </form>
-          {error && (
-            <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 rounded-lg flex items-start gap-2 text-sm animate-in fade-in">
-              <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-              <p>{error}</p>
-            </div>
-          )}
-        </section>
+        {!isMounted ? (
+          <div className="col-span-2 h-48 bg-sidebar-bg rounded-2xl animate-pulse flex items-center justify-center border border-sidebar-border shadow-sm">
+            <Loader2 className="w-8 h-8 text-brand animate-spin" />
+          </div>
+        ) : (
+          <>
+            <section className="p-6 rounded-2xl border border-sidebar-border bg-sidebar-bg shadow-sm flex flex-col justify-center">
+              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <Search className="w-5 h-5 text-brand" />
+                Enter IUPAC Name
+              </h2>
+              <form onSubmit={handleSubmit} className="flex gap-3">
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    placeholder="e.g., aspirin or benzene"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-sidebar-border bg-background focus:outline-none focus:ring-2 focus:ring-brand/50 transition-shadow"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={isLoading || !query.trim()}
+                  className="px-6 py-3 bg-brand text-white font-medium rounded-xl hover:bg-brand-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[120px]"
+                >
+                  {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Analyze"}
+                </button>
+              </form>
+              {error && (
+                <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 rounded-lg flex items-start gap-2 text-sm animate-in fade-in">
+                  <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                  <p>{error}</p>
+                </div>
+              )}
+            </section>
 
-        <section 
-          className="p-6 rounded-2xl border-2 border-dashed border-sidebar-border bg-sidebar-bg/50 hover:bg-sidebar-bg hover:border-brand/50 transition-colors shadow-sm cursor-pointer flex flex-col items-center justify-center text-center group relative overflow-hidden"
-          onClick={() => fileInputRef.current?.click()}
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={(e) => {
-            e.preventDefault();
-            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-              const file = e.dataTransfer.files[0];
-              if (file.type.startsWith('image/')) {
-                setImageFile(file);
-                setPreviewUrl(URL.createObjectURL(file));
-              }
-            }
-          }}
-        >
-          <input 
-            type="file" 
-            accept="image/*" 
-            className="hidden" 
-            ref={fileInputRef}
-            onChange={(e) => {
-              if (e.target.files && e.target.files[0]) {
-                setImageFile(e.target.files[0]);
-                setPreviewUrl(URL.createObjectURL(e.target.files[0]));
-              }
-            }}
-          />
-          {previewUrl ? (
-            <div className="absolute inset-0 p-2 bg-sidebar-bg flex flex-col items-center justify-center animate-in fade-in duration-300">
-               <img src={previewUrl} alt="Uploaded" className="max-h-full object-contain rounded-lg shadow-sm border border-sidebar-border" />
-               <button 
-                 onClick={(e) => { e.stopPropagation(); setImageFile(null); setPreviewUrl(null); }}
-                 className="absolute top-3 right-3 p-1.5 bg-background/80 hover:bg-red-500 hover:text-white rounded-full transition-colors shadow-sm border border-sidebar-border"
-               >
-                 <X className="w-4 h-4" />
-               </button>
-            </div>
-          ) : (
-            <>
-              <div className="w-12 h-12 bg-sidebar-item-active rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                <UploadCloud className="w-6 h-6 text-brand" />
-              </div>
-              <h3 className="font-semibold mb-1">Upload Structure Image</h3>
-              <p className="text-xs text-sidebar-text">
-                Drag & drop, click, or Ctrl+V to paste
-              </p>
-            </>
-          )}
-        </section>
+            <section 
+              className="p-6 rounded-2xl border-2 border-dashed border-sidebar-border bg-sidebar-bg/50 hover:bg-sidebar-bg hover:border-brand/50 transition-colors shadow-sm flex flex-col items-center justify-center text-center relative overflow-hidden"
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                  const file = e.dataTransfer.files[0];
+                  if (file.type.startsWith('image/')) {
+                    setImageFile(file);
+                    setPreviewUrl(URL.createObjectURL(file));
+                    setImageWarning(null);
+                  }
+                }
+              }}
+            >
+              <input 
+                type="file" 
+                accept="image/*" 
+                className="hidden" 
+                ref={fileInputRef}
+                onChange={(e) => {
+                  if (e.target.files && e.target.files[0]) {
+                    setImageFile(e.target.files[0]);
+                    setPreviewUrl(URL.createObjectURL(e.target.files[0]));
+                    setImageWarning(null);
+                  }
+                }}
+              />
+              {previewUrl ? (
+                <div className="absolute inset-0 p-4 bg-sidebar-bg flex flex-col animate-in fade-in duration-300">
+                   <div className="relative flex-1 min-h-0 bg-background rounded-lg border border-sidebar-border shadow-sm flex items-center justify-center mb-3">
+                     <img src={previewUrl} alt="Uploaded" className="max-h-full max-w-full object-contain rounded-lg" />
+                     <button 
+                       onClick={() => { setImageFile(null); setPreviewUrl(null); setImageWarning(null); }}
+                       className="absolute top-2 right-2 p-1.5 bg-background/80 hover:bg-red-500 hover:text-white rounded-full transition-colors shadow-sm border border-sidebar-border"
+                     >
+                       <X className="w-4 h-4" />
+                     </button>
+                   </div>
+                   <button
+                     onClick={handleAnalyzeImage}
+                     disabled={isAnalyzingImage || !scriptsLoaded.tesseract}
+                     className="w-full py-2.5 bg-brand text-white font-medium rounded-xl hover:bg-brand-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shrink-0 shadow-sm"
+                   >
+                     {isAnalyzingImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+                     Analyze Image
+                   </button>
+                </div>
+              ) : (
+                <div className="cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                  <div className="w-12 h-12 bg-sidebar-item-active rounded-full flex items-center justify-center mb-3 mx-auto hover:scale-110 transition-transform">
+                    <UploadCloud className="w-6 h-6 text-brand" />
+                  </div>
+                  <h3 className="font-semibold mb-1">Upload Structure Image</h3>
+                  <p className="text-xs text-sidebar-text">
+                    Drag & drop, click, or Ctrl+V to paste
+                  </p>
+                </div>
+              )}
+            </section>
+          </>
+        )}
       </div>
+
+      {imageWarning && (
+        <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 text-yellow-600 dark:text-yellow-500 rounded-xl flex items-start gap-3 text-sm animate-in fade-in">
+          <AlertCircle className="w-5 h-5 mt-0.5 shrink-0" />
+          <p className="leading-relaxed">{imageWarning}</p>
+        </div>
+      )}
 
       {/* Results Section */}
       {showResults && !error && (
