@@ -36,18 +36,27 @@ function generateNomenclatureSteps(name: string): string[] {
 
   for (let p of prefixes) {
     if (cleanName.includes(p.key)) {
-      steps.push(`Contains parent chain/prefix '${p.key}' indicating ${p.val} carbon(s)`);
+      steps.push(`The '${p.key}' root indicates the longest continuous carbon chain contains ${p.val} atoms.`);
+      break;
     }
   }
 
-  if (cleanName.includes("ane")) steps.push("Contains 'ane' suffix indicating single bonds (alkane).");
-  if (cleanName.includes("ene")) steps.push("Contains 'ene' suffix indicating double bonds (alkene).");
-  if (cleanName.includes("yne")) steps.push("Contains 'yne' suffix indicating triple bonds (alkyne).");
-  if (cleanName.includes("ol")) steps.push("Contains 'ol' suffix indicating an alcohol group.");
-  if (cleanName.includes("oic acid")) steps.push("Contains 'oic acid' indicating a carboxylic acid.");
+  if (cleanName.includes("oic acid")) steps.push("The '-oic acid' suffix identifies this as a carboxylic acid, the highest priority functional group.");
+  else if (cleanName.includes("al")) steps.push("The '-al' suffix identifies this as an aldehyde.");
+  else if (cleanName.includes("one")) steps.push("The '-one' suffix identifies this as a ketone.");
+  else if (cleanName.includes("ol")) steps.push("The '-ol' suffix identifies this as an alcohol.");
+  else if (cleanName.includes("amine")) steps.push("The '-amine' suffix identifies this as an amine.");
 
-  if (name.includes("E") || name.includes("Z")) steps.push("Contains E/Z stereodescriptors for double bond geometry.");
-  if (name.includes("R") || name.includes("S")) steps.push("Contains R/S stereodescriptors for chiral centers.");
+  if (cleanName.includes("ane")) steps.push("The '-ane' suffix indicates single bonds (saturation) throughout the carbon chain.");
+  if (cleanName.includes("ene")) steps.push("The '-ene' suffix indicates the presence of at least one double bond (unsaturation).");
+  if (cleanName.includes("yne")) steps.push("The '-yne' suffix indicates the presence of at least one triple bond (unsaturation).");
+
+  if (name.includes("(E)")) steps.push("The '(E)' descriptor indicates the highest priority groups on the double bond are on opposite sides (Entgegen).");
+  if (name.includes("(Z)")) steps.push("The '(Z)' descriptor indicates the highest priority groups on the double bond are on the same side (Zusammen).");
+  if (name.includes("(R)")) steps.push("The '(R)' descriptor indicates a clockwise (Rectus) configuration of groups around a chiral center.");
+  if (name.includes("(S)")) steps.push("The '(S)' descriptor indicates a counter-clockwise (Sinister) configuration of groups around a chiral center.");
+  if (cleanName.includes("cis-")) steps.push("The 'cis-' prefix indicates two similar groups are on the same side of a ring or double bond.");
+  if (cleanName.includes("trans-")) steps.push("The 'trans-' prefix indicates two similar groups are on opposite sides of a ring or double bond.");
 
   return steps;
 }
@@ -60,6 +69,7 @@ export default function ExplorerPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [smiles, setSmiles] = useState("");
   const [iupacName, setIupacName] = useState("");
+  const [drawnName, setDrawnName] = useState("");
   const [sdfData, setSdfData] = useState("");
   const [nomenclatureSteps, setNomenclatureSteps] = useState<string[]>([]);
 
@@ -158,9 +168,7 @@ export default function ExplorerPage() {
     container.innerHTML = ""; 
 
     try {
-      const viewer = window.$3Dmol.createViewer(window.$(container), {
-        backgroundColor: "transparent"
-      });
+      const viewer = window.$3Dmol.createViewer(window.$(container));
       viewer.addModel(sdfStr, "sdf");
       viewer.setStyle({}, { stick: { radius: 0.15 } });
       viewer.zoomTo();
@@ -236,6 +244,7 @@ export default function ExplorerPage() {
     if (!window.jsmeApplet) return;
     setIsSearching(true);
     setError(null);
+    setDrawnName("");
 
     const drawnSmiles = window.jsmeApplet.smiles();
     if (!drawnSmiles) {
@@ -247,19 +256,39 @@ export default function ExplorerPage() {
     setSmiles(drawnSmiles);
 
     try {
-      // 1. Structure to Name
-      const pubchemRes = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/${encodeURIComponent(drawnSmiles)}/property/IUPACName/JSON`);
-      if (pubchemRes.ok) {
-        const data = await pubchemRes.json();
-        const iupac = data.PropertyTable.Properties[0].IUPACName;
-        setIupacName(iupac);
-        setSearchTerm(iupac);
-        setNomenclatureSteps(generateNomenclatureSteps(iupac));
-      } else {
-        setIupacName("Unknown Structure");
-        setNomenclatureSteps([]);
+      // 1. Structure to Name (PubChem with Cactus Fallback)
+      try {
+        const pubchemRes = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/${encodeURIComponent(drawnSmiles)}/property/IUPACName/JSON`);
+        if (pubchemRes.ok) {
+          const data = await pubchemRes.json();
+          const iupac = data.PropertyTable.Properties[0].IUPACName;
+          setIupacName(iupac);
+          setDrawnName(iupac);
+          setSearchTerm(iupac);
+          setNomenclatureSteps(generateNomenclatureSteps(iupac));
+        } else {
+          throw new Error("PubChem 404");
+        }
+      } catch (pubchemErr) {
+        // Fallback to Cactus
+        const cactusRes = await fetch(`https://cactus.nci.nih.gov/chemical/structure/${encodeURIComponent(drawnSmiles)}/iupac_name`);
+        if (cactusRes.ok) {
+          const iupac = await cactusRes.text();
+          setIupacName(iupac);
+          setDrawnName(iupac);
+          setSearchTerm(iupac);
+          setNomenclatureSteps(generateNomenclatureSteps(iupac));
+        } else {
+          throw new Error("Cactus 404");
+        }
       }
+    } catch (e) {
+      setDrawnName("Name not available: This specific structure could not be algorithmically named by the standard public databases.");
+      setIupacName("Unknown Structure");
+      setNomenclatureSteps([]);
+    }
 
+    try {
       // 2. Fetch 3D SDF
       let sdfResult = "";
       const res3d = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/${encodeURIComponent(drawnSmiles)}/SDF?record_type=3d`);
@@ -270,9 +299,8 @@ export default function ExplorerPage() {
         if (res2d.ok) sdfResult = await res2d.text();
       }
       setSdfData(sdfResult);
-
     } catch (e) {
-      setError("Molecule not found. Please check the spelling.");
+      console.warn("SDF Fetch failed", e);
     } finally {
       setIsSearching(false);
     }
@@ -434,6 +462,15 @@ export default function ExplorerPage() {
               >
                 Analyze Drawn Structure
               </button>
+
+              {drawnName && (
+                <div className="mt-4 p-4 bg-background border border-sidebar-border rounded-xl shadow-sm">
+                  <p className="text-xs text-sidebar-text font-bold uppercase tracking-wider mb-1">Identified Name</p>
+                  <p className={`text-sm font-mono break-words ${drawnName.includes("Name not available") ? "text-amber-600 dark:text-amber-400" : "text-brand"}`}>
+                    {drawnName}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
