@@ -20,27 +20,17 @@ declare global {
 }
 
 // Helper: Parse IUPAC Name and generate nomenclature rules
-function generateNomenclatureSteps(name: string): string[] {
-  const steps: string[] = [];
+function generateNomenclatureSteps(name: string): { drawingSteps: string[], namingRules: string[] } {
+  const drawingSteps: string[] = [];
+  const namingRules: string[] = [];
   const cleanName = name.trim().toLowerCase();
 
   if (!cleanName) {
-    return ["IUPAC Rules: Identify the longest carbon chain containing the highest-priority functional group, and number it to give that group the lowest possible locant."];
+    namingRules.push("IUPAC Rules: Identify the longest carbon chain containing the highest-priority functional group, and number it to give that group the lowest possible locant.");
+    return { drawingSteps, namingRules };
   }
 
-  // 1. Stereochemistry
-  const stereoMatches = [];
-  if (name.includes("(E)")) stereoMatches.push("The '(E)' descriptor indicates the highest priority groups on the double bond are on opposite sides.");
-  if (name.includes("(Z)")) stereoMatches.push("The '(Z)' descriptor indicates the highest priority groups on the double bond are on the same side.");
-  if (name.includes("(R)")) stereoMatches.push("The '(R)' descriptor indicates a clockwise configuration around a chiral center.");
-  if (name.includes("(S)")) stereoMatches.push("The '(S)' descriptor indicates a counter-clockwise configuration around a chiral center.");
-  if (cleanName.includes("cis-")) stereoMatches.push("The 'cis-' prefix indicates two similar groups are on the same side.");
-  if (cleanName.includes("trans-")) stereoMatches.push("The 'trans-' prefix indicates two similar groups are on opposite sides.");
-  if (stereoMatches.length > 0) {
-    steps.push(`Stereochemistry: ${stereoMatches.join(" ")}`);
-  }
-
-  // 2. Root Chain
+  // 1. Backbone
   const prefixes = [
     { key: "meth", val: 1 }, { key: "eth", val: 2 }, { key: "prop", val: 3 },
     { key: "but", val: 4 }, { key: "pent", val: 5 }, { key: "hex", val: 6 },
@@ -49,53 +39,118 @@ function generateNomenclatureSteps(name: string): string[] {
   ];
   for (let p of prefixes) {
     if (cleanName.includes(p.key)) {
-      steps.push(`Parent Chain: The '${p.key}' root indicates the longest continuous carbon chain contains ${p.val} atoms.`);
+      drawingSteps.push(`Start by drawing a continuous carbon chain of ${p.val} atoms.`);
       break;
     }
   }
 
-  // 3. Saturation
-  const saturationMatches = [];
-  if (cleanName.includes("ane")) saturationMatches.push("The '-ane' suffix indicates single bonds.");
-  if (cleanName.includes("ene")) saturationMatches.push("The '-ene' suffix indicates the presence of a double bond.");
-  if (cleanName.includes("yne")) saturationMatches.push("The '-yne' suffix indicates the presence of a triple bond.");
-  if (saturationMatches.length > 0) {
-    steps.push(`Saturation: ${saturationMatches.join(" ")}`);
-  }
+  // Helper for principal group locants
+  const getLocant = (suffix: string) => {
+    const match = cleanName.match(new RegExp(`(\\d+(?:,\\d+)*)-?${suffix}`));
+    return match ? match[1] : "the appropriate";
+  };
 
-  // 4. Principal Functional Group
+  // 2. Principal Group
+  let hasPrincipalGroup = false;
   if (cleanName.includes("oic acid")) {
-    steps.push("Principal Group: The '-oic acid' suffix indicates a carboxylic acid. The chain is numbered to give this group the lowest possible number.");
+    drawingSteps.push("Add the principal functional group carboxylic acid to carbon 1.");
+    namingRules.push("Numbering Priority: The chain is numbered to give the principal functional group the lowest possible locant.");
+    hasPrincipalGroup = true;
   } else if (cleanName.includes("al")) {
-    steps.push("Principal Group: The '-al' suffix indicates an aldehyde. The chain is numbered to give this group the lowest possible number.");
+    drawingSteps.push("Add the principal functional group aldehyde to carbon 1.");
+    namingRules.push("Numbering Priority: The chain is numbered to give the principal functional group the lowest possible locant.");
+    hasPrincipalGroup = true;
   } else if (cleanName.includes("one")) {
-    steps.push("Principal Group: The '-one' suffix indicates a ketone. The chain is numbered to give this group the lowest possible number.");
+    drawingSteps.push(`Add the principal functional group ketone to carbon ${getLocant("one")}.`);
+    namingRules.push("Numbering Priority: The chain is numbered to give the principal functional group the lowest possible locant.");
+    hasPrincipalGroup = true;
   } else if (cleanName.includes("ol")) {
-    steps.push("Principal Group: The '-ol' suffix indicates an alcohol. The chain is numbered to give this group the lowest possible number.");
+    drawingSteps.push(`Add the principal functional group alcohol to carbon ${getLocant("ol")}.`);
+    namingRules.push("Numbering Priority: The chain is numbered to give the principal functional group the lowest possible locant.");
+    hasPrincipalGroup = true;
   } else if (cleanName.includes("amine")) {
-    steps.push("Principal Group: The '-amine' suffix indicates an amine. The chain is numbered to give this group the lowest possible number.");
+    drawingSteps.push(`Add the principal functional group amine to carbon ${getLocant("amine")}.`);
+    namingRules.push("Numbering Priority: The chain is numbered to give the principal functional group the lowest possible locant.");
+    hasPrincipalGroup = true;
   }
 
-  // 5. Substituents
-  const subList = ["fluoro", "chloro", "bromo", "iodo", "methyl", "ethyl"];
-  const foundSubs = subList.filter(sub => cleanName.includes(sub));
-  if (foundSubs.length > 0) {
-    let formattedSubs = "";
-    if (foundSubs.length === 1) {
-      formattedSubs = `'${foundSubs[0]}'`;
-    } else if (foundSubs.length === 2) {
-      formattedSubs = `'${foundSubs[0]}' and '${foundSubs[1]}'`;
-    } else {
-      formattedSubs = foundSubs.slice(0, -1).map(s => `'${s}'`).join(", ") + `, and '${foundSubs[foundSubs.length - 1]}'`;
+  // 3. Unsaturation
+  if (cleanName.includes("ene")) {
+    drawingSteps.push(`Place a double bond starting at carbon ${getLocant("ene")}.`);
+    if (!hasPrincipalGroup) {
+      namingRules.push("Numbering Priority: The chain is numbered to give the double bond the lowest possible locant.");
     }
-    steps.push(`Substituents: Includes ${formattedSubs} groups, which are listed alphabetically in the nomenclature.`);
+  }
+  if (cleanName.includes("yne")) {
+    drawingSteps.push(`Place a triple bond starting at carbon ${getLocant("yne")}.`);
+    if (!hasPrincipalGroup && !cleanName.includes("ene")) {
+      namingRules.push("Numbering Priority: The chain is numbered to give the triple bond the lowest possible locant.");
+    }
   }
 
-  if (steps.length === 0) {
-    return ["IUPAC Rules: Identify the longest carbon chain containing the highest-priority functional group, and number it to give that group the lowest possible locant."];
+  // 4. Substituents
+  const subList = ["fluoro", "chloro", "bromo", "iodo", "methyl", "ethyl"];
+  let subsCount = 0;
+  subList.forEach(sub => {
+    const regex = new RegExp(`(\\d+(?:,\\d+)*)-?${sub}`, 'g');
+    let match;
+    let found = false;
+    while ((match = regex.exec(cleanName)) !== null) {
+      found = true;
+      subsCount++;
+      drawingSteps.push(`Attach the ${sub} group to carbon ${match[1]}.`);
+    }
+    if (!found && cleanName.includes(sub)) {
+      subsCount++;
+      drawingSteps.push(`Attach the ${sub} group to the appropriate carbon.`);
+    }
+  });
+
+  if (subsCount > 1) {
+    namingRules.push("Alphabetical Order: Multiple substituents are ordered alphabetically in the name, not numerically.");
+  }
+  if (subsCount > 0 && !hasPrincipalGroup && !cleanName.includes("ene") && !cleanName.includes("yne")) {
+    namingRules.push("Numbering Priority: The chain is numbered to give substituents the lowest possible locant.");
   }
 
-  return steps;
+  // 5. Stereochemistry
+  let hasEZ = false;
+  let hasCisTrans = false;
+  if (name.includes("(E)")) {
+    drawingSteps.push("Adjust 3D geometry: Ensure the highest priority groups on the double bond are on opposite sides ((E) configuration).");
+    hasEZ = true;
+  }
+  if (name.includes("(Z)")) {
+    drawingSteps.push("Adjust 3D geometry: Ensure the highest priority groups on the double bond are on the same side ((Z) configuration).");
+    hasEZ = true;
+  }
+  if (name.includes("(R)")) {
+    drawingSteps.push("Adjust 3D geometry: Ensure a clockwise (R) configuration around the chiral center.");
+  }
+  if (name.includes("(S)")) {
+    drawingSteps.push("Adjust 3D geometry: Ensure a counter-clockwise (S) configuration around the chiral center.");
+  }
+  if (cleanName.includes("cis-")) {
+    drawingSteps.push("Adjust 3D geometry: Ensure the two similar groups are on the same side (cis).");
+    hasCisTrans = true;
+  }
+  if (cleanName.includes("trans-")) {
+    drawingSteps.push("Adjust 3D geometry: Ensure the two similar groups are on opposite sides (trans).");
+    hasCisTrans = true;
+  }
+
+  if (hasEZ) {
+    namingRules.push("Stereodescriptors: (E)/(Z) descriptors are determined by Cahn-Ingold-Prelog (CIP) priority rules for non-identical groups.");
+  }
+  if (hasCisTrans) {
+    namingRules.push("Stereodescriptors: cis/trans is strictly used when identical groups are on the double bond or ring.");
+  }
+
+  if (drawingSteps.length === 0 && namingRules.length === 0) {
+    namingRules.push("IUPAC Rules: Identify the longest carbon chain containing the highest-priority functional group, and number it to give that group the lowest possible locant.");
+  }
+
+  return { drawingSteps, namingRules };
 }
 
 export default function ExplorerPage() {
@@ -108,7 +163,7 @@ export default function ExplorerPage() {
   const [iupacName, setIupacName] = useState("");
   const [drawnName, setDrawnName] = useState("");
   const [sdfData, setSdfData] = useState("");
-  const [nomenclatureSteps, setNomenclatureSteps] = useState<string[]>([]);
+  const [nomenclatureData, setNomenclatureData] = useState<{ drawingSteps: string[], namingRules: string[] }>({ drawingSteps: [], namingRules: [] });
 
   // Loading states
   const [isSearching, setIsSearching] = useState(false);
@@ -252,7 +307,7 @@ export default function ExplorerPage() {
 
       setSmiles(retrievedSmiles);
       setIupacName(name);
-      setNomenclatureSteps(generateNomenclatureSteps(name));
+      setNomenclatureData(generateNomenclatureSteps(name));
 
       // 2. Fetch 3D SDF
       let sdfResult = "";
@@ -277,7 +332,7 @@ export default function ExplorerPage() {
       setSmiles("");
       setSdfData("");
       setIupacName("");
-      setNomenclatureSteps([]);
+      setNomenclatureData({ drawingSteps: [], namingRules: [] });
     } finally {
       setIsSearching(false);
     }
@@ -309,7 +364,7 @@ export default function ExplorerPage() {
           setIupacName(iupac);
           setDrawnName(iupac);
           setSearchTerm(iupac);
-          setNomenclatureSteps(generateNomenclatureSteps(iupac));
+          setNomenclatureData(generateNomenclatureSteps(iupac));
         } else {
           throw new Error("PubChem 404");
         }
@@ -321,7 +376,7 @@ export default function ExplorerPage() {
           setIupacName(iupac);
           setDrawnName(iupac);
           setSearchTerm(iupac);
-          setNomenclatureSteps(generateNomenclatureSteps(iupac));
+          setNomenclatureData(generateNomenclatureSteps(iupac));
         } else {
           throw new Error("Cactus 404");
         }
@@ -329,7 +384,7 @@ export default function ExplorerPage() {
     } catch (e) {
       setDrawnName("Name not available: This specific structure could not be algorithmically named by the standard public databases.");
       setIupacName("Unknown Structure");
-      setNomenclatureSteps([]);
+      setNomenclatureData({ drawingSteps: [], namingRules: [] });
     }
 
     try {
@@ -409,7 +464,7 @@ export default function ExplorerPage() {
             </h1>
             <p className="text-sm text-sidebar-text mt-1">Stable API Integration & Visualization Dashboard</p>
           </div>
-          <button onClick={() => { setSearchTerm(""); setSmiles(""); setSdfData(""); setIupacName(""); setError(null); setNomenclatureSteps([]); }} className="flex items-center gap-2 text-sidebar-text hover:text-foreground text-sm font-semibold transition-colors">
+          <button onClick={() => { setSearchTerm(""); setSmiles(""); setSdfData(""); setIupacName(""); setError(null); setNomenclatureData({ drawingSteps: [], namingRules: [] }); }} className="flex items-center gap-2 text-sidebar-text hover:text-foreground text-sm font-semibold transition-colors">
             <RotateCcw className="w-4 h-4" /> Reset
           </button>
         </header>
@@ -567,18 +622,37 @@ export default function ExplorerPage() {
         )}
 
         {/* Nomenclature Logic Breakdown */}
-        {nomenclatureSteps.length > 0 && (
-          <div className="bg-sidebar-bg border border-sidebar-border rounded-xl p-6 shadow-sm space-y-4">
-            <h3 className="text-lg font-bold flex items-center gap-2 border-b border-sidebar-border pb-2">
-              <FileText className="w-5 h-5 text-brand" /> Nomenclature Rules & Steps
-            </h3>
-            <ul className="space-y-2">
-              {nomenclatureSteps.map((step, i) => (
-                <li key={i} className="text-sm text-sidebar-text flex items-start gap-2">
-                  <span className="text-brand font-bold mt-0.5">•</span> {step}
-                </li>
-              ))}
-            </ul>
+        {(nomenclatureData.drawingSteps.length > 0 || nomenclatureData.namingRules.length > 0) && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-4">
+            {nomenclatureData.drawingSteps.length > 0 && (
+              <div className="bg-sidebar-bg border border-sidebar-border rounded-xl p-6 shadow-sm space-y-4">
+                <h3 className="text-lg font-bold flex items-center gap-2 border-b border-sidebar-border pb-2">
+                  <FileText className="w-5 h-5 text-brand" /> How to Draw This Structure
+                </h3>
+                <ol className="list-decimal list-inside space-y-2">
+                  {nomenclatureData.drawingSteps.map((step, i) => (
+                    <li key={i} className="text-sm text-sidebar-text font-medium">
+                      {step}
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            )}
+
+            {nomenclatureData.namingRules.length > 0 && (
+              <div className="bg-sidebar-bg border border-sidebar-border rounded-xl p-6 shadow-sm space-y-4">
+                <h3 className="text-lg font-bold flex items-center gap-2 border-b border-sidebar-border pb-2">
+                  <FileText className="w-5 h-5 text-brand" /> IUPAC Naming Rules Applied
+                </h3>
+                <ul className="space-y-2">
+                  {nomenclatureData.namingRules.map((rule, i) => (
+                    <li key={i} className="text-sm text-sidebar-text flex items-start gap-2">
+                      <span className="text-brand font-bold mt-0.5">•</span> {rule}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         )}
 
