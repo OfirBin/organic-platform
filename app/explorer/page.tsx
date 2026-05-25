@@ -151,7 +151,14 @@ export default function ExplorerPage() {
     if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     try {
-      let options = { width: 400, height: 350, bondThickness: 1.5, fontSizeLarge: 14 };
+      let options = { 
+        width: 400, 
+        height: 350, 
+        bondThickness: 1.5, 
+        fontSizeLarge: 14,
+        compactDrawing: false,
+        terminalCarbons: true
+      };
       let drawer = new window.SmilesDrawer.Drawer(options);
       window.SmilesDrawer.parse(smilesStr, (tree: any) => {
         drawer.draw(tree, "canvas-2d", "light", false);
