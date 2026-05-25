@@ -23,127 +23,154 @@ declare global {
 function generateNomenclatureSteps(name: string): { drawingSteps: string[], namingRules: string[] } {
   const drawingSteps: string[] = [];
   const namingRules: string[] = [];
-  const cleanName = name.trim().toLowerCase();
+  let workingName = name.trim().toLowerCase();
 
-  if (!cleanName) {
+  if (!workingName) {
     namingRules.push("IUPAC Rules: Identify the longest carbon chain containing the highest-priority functional group, and number it to give that group the lowest possible locant.");
     return { drawingSteps, namingRules };
   }
 
-  // 1. Backbone
-  const prefixes = [
-    { key: "meth", val: 1 }, { key: "eth", val: 2 }, { key: "prop", val: 3 },
-    { key: "but", val: 4 }, { key: "pent", val: 5 }, { key: "hex", val: 6 },
-    { key: "hept", val: 7 }, { key: "oct", val: 8 }, { key: "non", val: 9 },
-    { key: "dec", val: 10 }
-  ];
-  for (let p of prefixes) {
-    if (cleanName.includes(p.key)) {
-      drawingSteps.push(`Start by drawing a continuous carbon chain of ${p.val} atoms.`);
-      break;
-    }
-  }
-
-  // Helper for principal group locants
-  const getLocant = (suffix: string) => {
-    const match = cleanName.match(new RegExp(`(\\d+(?:,\\d+)*)-?${suffix}`));
-    return match ? match[1] : "the appropriate";
+  const extractLocants = (str: string) => {
+    const match = str.match(/[\d,]+/);
+    return match ? `carbon ${match[0]}` : "the appropriate carbon";
   };
 
-  // 2. Principal Group
-  let hasPrincipalGroup = false;
-  if (cleanName.includes("oic acid")) {
-    drawingSteps.push("Add the principal functional group carboxylic acid to carbon 1.");
-    namingRules.push("Numbering Priority: The chain is numbered to give the principal functional group the lowest possible locant.");
-    hasPrincipalGroup = true;
-  } else if (cleanName.includes("al")) {
-    drawingSteps.push("Add the principal functional group aldehyde to carbon 1.");
-    namingRules.push("Numbering Priority: The chain is numbered to give the principal functional group the lowest possible locant.");
-    hasPrincipalGroup = true;
-  } else if (cleanName.includes("one")) {
-    drawingSteps.push(`Add the principal functional group ketone to carbon ${getLocant("one")}.`);
-    namingRules.push("Numbering Priority: The chain is numbered to give the principal functional group the lowest possible locant.");
-    hasPrincipalGroup = true;
-  } else if (cleanName.includes("ol")) {
-    drawingSteps.push(`Add the principal functional group alcohol to carbon ${getLocant("ol")}.`);
-    namingRules.push("Numbering Priority: The chain is numbered to give the principal functional group the lowest possible locant.");
-    hasPrincipalGroup = true;
-  } else if (cleanName.includes("amine")) {
-    drawingSteps.push(`Add the principal functional group amine to carbon ${getLocant("amine")}.`);
-    namingRules.push("Numbering Priority: The chain is numbered to give the principal functional group the lowest possible locant.");
-    hasPrincipalGroup = true;
+  // 1. Stereochemistry
+  const stereoRegex = /^\([ezrs\d,\-]+\)-?/i;
+  const stereoMatch = workingName.match(stereoRegex);
+  if (stereoMatch) {
+    const stereoStr = stereoMatch[0];
+    if (stereoStr.includes("e")) {
+      drawingSteps.push("Adjust 3D geometry: Ensure the highest priority groups on the double bond are on opposite sides ((E) configuration).");
+      namingRules.push("Stereodescriptors: (E)/(Z) descriptors are determined by Cahn-Ingold-Prelog (CIP) priority rules for non-identical groups.");
+    }
+    if (stereoStr.includes("z")) {
+      drawingSteps.push("Adjust 3D geometry: Ensure the highest priority groups on the double bond are on the same side ((Z) configuration).");
+      if (!namingRules.some(r => r.includes("(E)/(Z)"))) {
+        namingRules.push("Stereodescriptors: (E)/(Z) descriptors are determined by Cahn-Ingold-Prelog (CIP) priority rules for non-identical groups.");
+      }
+    }
+    if (stereoStr.includes("r")) {
+      drawingSteps.push("Adjust 3D geometry: Ensure a clockwise (R) configuration around the chiral center.");
+      namingRules.push("Stereodescriptors: (R)/(S) descriptors use CIP rules to indicate the absolute configuration of a chiral center.");
+    }
+    if (stereoStr.includes("s")) {
+      drawingSteps.push("Adjust 3D geometry: Ensure a counter-clockwise (S) configuration around the chiral center.");
+      if (!namingRules.some(r => r.includes("(R)/(S)"))) {
+         namingRules.push("Stereodescriptors: (R)/(S) descriptors use CIP rules to indicate the absolute configuration of a chiral center.");
+      }
+    }
+    workingName = workingName.replace(stereoRegex, "");
+  }
+  
+  if (workingName.startsWith("cis-")) {
+    drawingSteps.push("Adjust 3D geometry: Ensure the two similar groups are on the same side (cis).");
+    namingRules.push("Stereodescriptors: cis/trans is strictly used when identical groups are on the double bond or ring.");
+    workingName = workingName.replace(/^cis-/, "");
+  } else if (workingName.startsWith("trans-")) {
+    drawingSteps.push("Adjust 3D geometry: Ensure the two similar groups are on opposite sides (trans).");
+    namingRules.push("Stereodescriptors: cis/trans is strictly used when identical groups are on the double bond or ring.");
+    workingName = workingName.replace(/^trans-/, "");
   }
 
-  // 3. Unsaturation
-  if (cleanName.includes("ene")) {
-    drawingSteps.push(`Place a double bond starting at carbon ${getLocant("ene")}.`);
-    if (!hasPrincipalGroup) {
-      namingRules.push("Numbering Priority: The chain is numbered to give the double bond the lowest possible locant.");
-    }
-  }
-  if (cleanName.includes("yne")) {
-    drawingSteps.push(`Place a triple bond starting at carbon ${getLocant("yne")}.`);
-    if (!hasPrincipalGroup && !cleanName.includes("ene")) {
-      namingRules.push("Numbering Priority: The chain is numbered to give the triple bond the lowest possible locant.");
-    }
-  }
-
-  // 4. Substituents
-  const subList = ["fluoro", "chloro", "bromo", "iodo", "methyl", "ethyl"];
+  // 2. Substituents
+  const subList = ["fluoro", "chloro", "bromo", "iodo", "methyl", "ethyl", "propyl", "butyl"];
   let subsCount = 0;
   subList.forEach(sub => {
-    const regex = new RegExp(`(\\d+(?:,\\d+)*)-?${sub}`, 'g');
+    const regex = new RegExp(`(?:[\\d,]+-)?(?:di|tri|tetra|penta)?${sub}`, 'g');
     let match;
-    let found = false;
-    while ((match = regex.exec(cleanName)) !== null) {
-      found = true;
-      subsCount++;
-      drawingSteps.push(`Attach the ${sub} group to carbon ${match[1]}.`);
+    let foundMatches = [];
+    while ((match = regex.exec(workingName)) !== null) {
+      foundMatches.push(match[0]);
     }
-    if (!found && cleanName.includes(sub)) {
+    foundMatches.forEach(m => {
       subsCount++;
-      drawingSteps.push(`Attach the ${sub} group to the appropriate carbon.`);
-    }
+      drawingSteps.push(`Attach the ${sub} group to ${extractLocants(m)}.`);
+      workingName = workingName.replace(m, "");
+    });
   });
+
+  // 3. Principal Group
+  let hasPrincipalGroup = false;
+  const groups = [
+    { name: "carboxylic acid", suffix: "oic acid" },
+    { name: "aldehyde", suffix: "al" },
+    { name: "ketone", suffix: "one" },
+    { name: "alcohol", suffix: "ol" },
+    { name: "amine", suffix: "amine" }
+  ];
+  
+  groups.forEach(g => {
+    const regex = new RegExp(`(?:[\\d,]+-)?(?:di|tri)?${g.suffix}(?:-|$)`, 'g');
+    let match;
+    let foundMatches = [];
+    while ((match = regex.exec(workingName)) !== null) {
+      foundMatches.push(match[0]);
+    }
+    foundMatches.forEach(m => {
+      hasPrincipalGroup = true;
+      const locs = (g.suffix === "oic acid" || g.suffix === "al") ? "carbon 1" : extractLocants(m);
+      drawingSteps.push(`Add the principal functional group ${g.name} to ${locs}.`);
+      if (!namingRules.some(r => r.includes("Numbering Priority: The chain is numbered to give the principal functional group"))) {
+        namingRules.push("Numbering Priority: The chain is numbered to give the principal functional group the lowest possible locant.");
+      }
+      workingName = workingName.replace(m, "");
+    });
+  });
+
+  // 4. Unsaturation
+  let hasEne = false;
+  let hasYne = false;
+  
+  const eneRegex = /(?:[\d,]+-)?(?:di|tri)?en(?:e|-|$)/g;
+  let eneMatch;
+  let eneMatches = [];
+  while ((eneMatch = eneRegex.exec(workingName)) !== null) {
+    eneMatches.push(eneMatch[0]);
+  }
+  eneMatches.forEach(m => {
+    hasEne = true;
+    drawingSteps.push(`Place a double bond starting at ${extractLocants(m)}.`);
+    workingName = workingName.replace(m, "");
+  });
+
+  const yneRegex = /(?:[\d,]+-)?(?:di|tri)?yn(?:e|-|$)/g;
+  let yneMatch;
+  let yneMatches = [];
+  while ((yneMatch = yneRegex.exec(workingName)) !== null) {
+    yneMatches.push(yneMatch[0]);
+  }
+  yneMatches.forEach(m => {
+    hasYne = true;
+    drawingSteps.push(`Place a triple bond starting at ${extractLocants(m)}.`);
+    workingName = workingName.replace(m, "");
+  });
+
+  if (hasEne && !hasPrincipalGroup) {
+    namingRules.push("Numbering Priority: The chain is numbered to give the double bond the lowest possible locant.");
+  } else if (hasYne && !hasPrincipalGroup && !hasEne) {
+    namingRules.push("Numbering Priority: The chain is numbered to give the triple bond the lowest possible locant.");
+  }
 
   if (subsCount > 1) {
     namingRules.push("Alphabetical Order: Multiple substituents are ordered alphabetically in the name, not numerically.");
   }
-  if (subsCount > 0 && !hasPrincipalGroup && !cleanName.includes("ene") && !cleanName.includes("yne")) {
+  if (subsCount > 0 && !hasPrincipalGroup && !hasEne && !hasYne) {
     namingRules.push("Numbering Priority: The chain is numbered to give substituents the lowest possible locant.");
   }
 
-  // 5. Stereochemistry
-  let hasEZ = false;
-  let hasCisTrans = false;
-  if (name.includes("(E)")) {
-    drawingSteps.push("Adjust 3D geometry: Ensure the highest priority groups on the double bond are on opposite sides ((E) configuration).");
-    hasEZ = true;
-  }
-  if (name.includes("(Z)")) {
-    drawingSteps.push("Adjust 3D geometry: Ensure the highest priority groups on the double bond are on the same side ((Z) configuration).");
-    hasEZ = true;
-  }
-  if (name.includes("(R)")) {
-    drawingSteps.push("Adjust 3D geometry: Ensure a clockwise (R) configuration around the chiral center.");
-  }
-  if (name.includes("(S)")) {
-    drawingSteps.push("Adjust 3D geometry: Ensure a counter-clockwise (S) configuration around the chiral center.");
-  }
-  if (cleanName.includes("cis-")) {
-    drawingSteps.push("Adjust 3D geometry: Ensure the two similar groups are on the same side (cis).");
-    hasCisTrans = true;
-  }
-  if (cleanName.includes("trans-")) {
-    drawingSteps.push("Adjust 3D geometry: Ensure the two similar groups are on opposite sides (trans).");
-    hasCisTrans = true;
-  }
-
-  if (hasEZ) {
-    namingRules.push("Stereodescriptors: (E)/(Z) descriptors are determined by Cahn-Ingold-Prelog (CIP) priority rules for non-identical groups.");
-  }
-  if (hasCisTrans) {
-    namingRules.push("Stereodescriptors: cis/trans is strictly used when identical groups are on the double bond or ring.");
+  // 5. Root Chain
+  const prefixes = [
+    { key: "dec", val: 10 }, { key: "non", val: 9 }, { key: "oct", val: 8 },
+    { key: "hept", val: 7 }, { key: "hex", val: 6 }, { key: "pent", val: 5 },
+    { key: "but", val: 4 }, { key: "prop", val: 3 }, { key: "eth", val: 2 },
+    { key: "meth", val: 1 }
+  ];
+  for (let p of prefixes) {
+    if (workingName.includes(p.key)) {
+      drawingSteps.unshift(`Start by drawing a continuous carbon chain of ${p.val} atoms.`);
+      break;
+    }
   }
 
   if (drawingSteps.length === 0 && namingRules.length === 0) {
