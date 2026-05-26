@@ -43,3 +43,25 @@ model StudySession {
   endTime      DateTime?
   cardsStudied Int       @default(0)
 }
+
+// --------------------------------------
+// 4. KNOWLEDGE BASE (Lectures & Notes)
+// --------------------------------------
+model Document {
+  id        String   @id @default(cuid())
+  title     String   // e.g., "Lecture 5 - Reaction Mechanisms"
+  type      String   // e.g., "Lecture" or "Exam Solution"
+  createdAt DateTime @default(now())
+  
+  chunks    Chunk[]
+}
+
+model Chunk {
+  id         String   @id @default(cuid())
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  
+  pageNumber Int
+  content    String   // The AI-extracted text and mechanism descriptions
+  imageUrl   String?  // Optional: A direct link to an image of the slide
+}
