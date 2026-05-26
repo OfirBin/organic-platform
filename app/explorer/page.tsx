@@ -2,527 +2,701 @@
 
 import { useState, useEffect, useRef } from "react";
 import Script from "next/script";
-import { useTheme } from "next-themes";
-import { 
-  Search, 
-  UploadCloud, 
-  Box, 
-  ListOrdered, 
-  Activity, 
-  Loader2,
-  Atom,
-  AlertCircle,
-  X
+import {
+  Search, UploadCloud, Info, Sparkles, RotateCcw,
+  AlertCircle, RefreshCw, Eye, Image as ImageIcon, FileText
 } from "lucide-react";
 
-function generateNomenclatureSteps(name: string) {
-  const steps = [];
-  const lowerName = name.toLowerCase();
+declare global {
+  interface Window {
+    jsmeOnLoad?: () => void;
+    jsmeApplet?: any;
+    JSApplet?: any;
+    Tesseract?: any;
+    SmilesDrawer?: any;
+    $3Dmol?: any;
+    $?: any;
+  }
+}
 
-  let parentChain = "carbon chain";
-  if (lowerName.includes("meth")) parentChain = "1-carbon chain (meth-)";
-  else if (lowerName.includes("eth")) parentChain = "2-carbon chain (eth-)";
-  else if (lowerName.includes("prop")) parentChain = "3-carbon chain (prop-)";
-  else if (lowerName.includes("but")) parentChain = "4-carbon chain (but-)";
-  else if (lowerName.includes("pent")) parentChain = "5-carbon chain (pent-)";
-  else if (lowerName.includes("hex")) parentChain = "6-carbon chain (hex-)";
-  else if (lowerName.includes("hept")) parentChain = "7-carbon chain (hept-)";
-  else if (lowerName.includes("oct")) parentChain = "8-carbon chain (oct-)";
+// Helper: Parse IUPAC Name and generate nomenclature rules
+function generateNomenclatureSteps(name: string): { drawingSteps: string[], namingRules: string[] } {
+  const namingRules: string[] = [];
+  let workingName = name.trim().toLowerCase();
 
-  let suffix = "alkane (-ane)";
-  if (lowerName.includes("yne")) suffix = "alkyne (-yne) with a triple bond";
-  else if (lowerName.includes("ene")) suffix = "alkene (-ene) with a double bond";
-  else if (lowerName.includes("ol")) suffix = "alcohol (-ol) functional group";
-  else if (lowerName.includes("oic acid")) suffix = "carboxylic acid (-oic acid)";
+  const backbone = new Set<string>();
+  const principal = new Set<string>();
+  const bonds = new Set<string>();
+  const substituents = new Set<string>();
+  const stereochemistry = new Set<string>();
+
+  if (!workingName) {
+    namingRules.push("IUPAC Rules: Identify the longest carbon chain containing the highest-priority functional group, and number it to give that group the lowest possible locant.");
+    return { drawingSteps: [], namingRules };
+  }
+
+  const extractLocants = (str: string) => {
+    const match = str.match(/[\d,]+/);
+    return match ? `carbon ${match[0]}` : "the appropriate carbon";
+  };
+
+  // 1. Stereochemistry
+  const stereoRegex = /^\([ezrs\d,\-]+\)-?/i;
+  const stereoMatch = workingName.match(stereoRegex);
+  if (stereoMatch) {
+    const stereoStr = stereoMatch[0];
+    if (stereoStr.includes("e")) {
+      stereochemistry.add("Adjust 3D geometry: Ensure the highest priority groups on the double bond are on opposite sides ((E) configuration).");
+      namingRules.push("Stereodescriptors: (E)/(Z) descriptors are determined by Cahn-Ingold-Prelog (CIP) priority rules for non-identical groups.");
+    }
+    if (stereoStr.includes("z")) {
+      stereochemistry.add("Adjust 3D geometry: Ensure the highest priority groups on the double bond are on the same side ((Z) configuration).");
+      if (!namingRules.some(r => r.includes("(E)/(Z)"))) {
+        namingRules.push("Stereodescriptors: (E)/(Z) descriptors are determined by Cahn-Ingold-Prelog (CIP) priority rules for non-identical groups.");
+      }
+    }
+    if (stereoStr.includes("r")) {
+      stereochemistry.add("Adjust 3D geometry: Ensure a clockwise (R) configuration around the chiral center.");
+      namingRules.push("Stereodescriptors: (R)/(S) descriptors use CIP rules to indicate the absolute configuration of a chiral center.");
+    }
+    if (stereoStr.includes("s")) {
+      stereochemistry.add("Adjust 3D geometry: Ensure a counter-clockwise (S) configuration around the chiral center.");
+      if (!namingRules.some(r => r.includes("(R)/(S)"))) {
+         namingRules.push("Stereodescriptors: (R)/(S) descriptors use CIP rules to indicate the absolute configuration of a chiral center.");
+      }
+    }
+    workingName = workingName.replace(stereoRegex, "");
+  }
   
-  steps.push({
-    title: "Identify the parent chain and principal group",
-    desc: `The name indicates a ${parentChain} ending in an ${suffix}.`
+  if (workingName.startsWith("cis-")) {
+    stereochemistry.add("Adjust 3D geometry: Ensure the two similar groups are on the same side (cis).");
+    namingRules.push("Stereodescriptors: cis/trans is strictly used when identical groups are on the double bond or ring.");
+    workingName = workingName.replace(/^cis-/, "");
+  } else if (workingName.startsWith("trans-")) {
+    stereochemistry.add("Adjust 3D geometry: Ensure the two similar groups are on opposite sides (trans).");
+    namingRules.push("Stereodescriptors: cis/trans is strictly used when identical groups are on the double bond or ring.");
+    workingName = workingName.replace(/^trans-/, "");
+  }
+
+  // 2. Substituents
+  const subList = ["fluoro", "chloro", "bromo", "iodo", "methyl", "ethyl", "propyl", "butyl"];
+  let subsCount = 0;
+  subList.forEach(sub => {
+    const regex = new RegExp(`(?:[\\d,]+-)?(?:di|tri|tetra|penta)?${sub}`, 'g');
+    let match;
+    let foundMatches = [];
+    while ((match = regex.exec(workingName)) !== null) {
+      foundMatches.push(match[0]);
+    }
+    foundMatches.forEach(m => {
+      subsCount++;
+      substituents.add(`Attach the ${sub} group to ${extractLocants(m)}.`);
+      workingName = workingName.replace(m, "");
+    });
   });
 
-  const substituents = [];
-  if (lowerName.includes("bromo")) substituents.push("bromine (bromo-)");
-  if (lowerName.includes("chloro")) substituents.push("chlorine (chloro-)");
-  if (lowerName.includes("fluoro")) substituents.push("fluorine (fluoro-)");
-  if (lowerName.includes("iodo")) substituents.push("iodine (iodo-)");
-  if (lowerName.includes("methyl") && !lowerName.match(/^methyl/)) substituents.push("methyl group");
+  // 3. Principal Group
+  let hasPrincipalGroup = false;
+  const groups = [
+    { name: "carboxylic acid", suffix: "oic acid" },
+    { name: "aldehyde", suffix: "al" },
+    { name: "ketone", suffix: "one" },
+    { name: "alcohol", suffix: "ol" },
+    { name: "amine", suffix: "amine" }
+  ];
   
-  if (substituents.length > 0) {
-    steps.push({
-      title: "Identify substituents",
-      desc: `Found substituents: ${substituents.join(", ")}.`
+  groups.forEach(g => {
+    const regex = new RegExp(`(?:[\\d,]+-)?(?:di|tri)?${g.suffix}(?:-|$)`, 'g');
+    let match;
+    let foundMatches = [];
+    while ((match = regex.exec(workingName)) !== null) {
+      foundMatches.push(match[0]);
+    }
+    foundMatches.forEach(m => {
+      hasPrincipalGroup = true;
+      const locs = (g.suffix === "oic acid" || g.suffix === "al") ? "carbon 1" : extractLocants(m);
+      principal.add(`Add the principal functional group ${g.name} to ${locs}.`);
+      if (!namingRules.some(r => r.includes("Numbering Priority: The chain is numbered to give the principal functional group"))) {
+        namingRules.push("Numbering Priority: The chain is numbered to give the principal functional group the lowest possible locant.");
+      }
+      workingName = workingName.replace(m, "");
     });
+  });
+
+  // 4. Unsaturation
+  let hasEne = false;
+  let hasYne = false;
+  
+  const eneRegex = /(?:[\d,]+-)?(?:di|tri)?en(?:e|-|$)/g;
+  let eneMatch;
+  let eneMatches = [];
+  while ((eneMatch = eneRegex.exec(workingName)) !== null) {
+    eneMatches.push(eneMatch[0]);
+  }
+  eneMatches.forEach(m => {
+    hasEne = true;
+    bonds.add(`Place a double bond starting at ${extractLocants(m)}.`);
+    workingName = workingName.replace(m, "");
+  });
+
+  const yneRegex = /(?:[\d,]+-)?(?:di|tri)?yn(?:e|-|$)/g;
+  let yneMatch;
+  let yneMatches = [];
+  while ((yneMatch = yneRegex.exec(workingName)) !== null) {
+    yneMatches.push(yneMatch[0]);
+  }
+  yneMatches.forEach(m => {
+    hasYne = true;
+    bonds.add(`Place a triple bond starting at ${extractLocants(m)}.`);
+    workingName = workingName.replace(m, "");
+  });
+
+  if (hasEne && !hasPrincipalGroup) {
+    namingRules.push("Numbering Priority: The chain is numbered to give the double bond the lowest possible locant.");
+  } else if (hasYne && !hasPrincipalGroup && !hasEne) {
+    namingRules.push("Numbering Priority: The chain is numbered to give the triple bond the lowest possible locant.");
   }
 
-  if (lowerName.includes("(e)") || lowerName.includes("(z)") || lowerName.includes("e-") || lowerName.includes("z-")) {
-    steps.push({
-      title: "E/Z Stereochemistry",
-      desc: "The (E) or (Z) prefix denotes the stereochemistry of a double bond with non-identical groups based on Cahn-Ingold-Prelog priorities."
-    });
-  } else if (lowerName.includes("(r)") || lowerName.includes("(s)") || lowerName.includes("r-") || lowerName.includes("s-")) {
-    steps.push({
-      title: "R/S Stereochemistry",
-      desc: "The (R) or (S) prefix indicates the absolute configuration of chiral centers."
-    });
-  } else {
-     steps.push({
-      title: "Number the chain",
-      desc: "Numbering gives the lowest possible locants to the principal functional group and substituents."
-    });
+  if (subsCount > 1) {
+    namingRules.push("Alphabetical Order: Multiple substituents are ordered alphabetically in the name, not numerically.");
+  }
+  if (subsCount > 0 && !hasPrincipalGroup && !hasEne && !hasYne) {
+    namingRules.push("Numbering Priority: The chain is numbered to give substituents the lowest possible locant.");
   }
 
-  return steps;
+  // 5. Root Chain
+  const prefixes = [
+    { key: "dec", val: 10 }, { key: "non", val: 9 }, { key: "oct", val: 8 },
+    { key: "hept", val: 7 }, { key: "hex", val: 6 }, { key: "pent", val: 5 },
+    { key: "but", val: 4 }, { key: "prop", val: 3 }, { key: "eth", val: 2 },
+    { key: "meth", val: 1 }
+  ];
+  for (let p of prefixes) {
+    if (workingName.includes(p.key)) {
+      backbone.add(`Start by drawing a continuous carbon chain of ${p.val} atoms.`);
+      break;
+    }
+  }
+
+  const orderedDrawingSteps = [
+    ...Array.from(backbone),
+    ...Array.from(principal),
+    ...Array.from(bonds),
+    ...Array.from(substituents),
+    ...Array.from(stereochemistry)
+  ];
+
+  if (orderedDrawingSteps.length === 0 && namingRules.length === 0) {
+    namingRules.push("IUPAC Rules: Identify the longest carbon chain containing the highest-priority functional group, and number it to give that group the lowest possible locant.");
+  }
+
+  return { drawingSteps: orderedDrawingSteps, namingRules };
 }
 
 export default function ExplorerPage() {
-  const [query, setQuery] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [showResults, setShowResults] = useState(false);
-  const [analyzedQuery, setAnalyzedQuery] = useState("");
-  
-  // API & Visualization State
-  const [error, setError] = useState<string | null>(null);
-  const [smilesData, setSmilesData] = useState<string | null>(null);
-  const [sdfData, setSdfData] = useState<string | null>(null);
-  const [scriptsLoaded, setScriptsLoaded] = useState({ smiles: false, d3mol: false, tesseract: false });
-  
   const [isMounted, setIsMounted] = useState(false);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [isAnalyzingImage, setIsAnalyzingImage] = useState(false);
-  const [imageWarning, setImageWarning] = useState<string | null>(null);
-  
-  const { resolvedTheme } = useTheme();
-  
+  const [error, setError] = useState<string | null>(null);
+
+  // Data states
+  const [searchTerm, setSearchTerm] = useState("");
+  const [smiles, setSmiles] = useState("");
+  const [iupacName, setIupacName] = useState("");
+  const [drawnName, setDrawnName] = useState("");
+  const [sdfData, setSdfData] = useState("");
+  const [nomenclatureData, setNomenclatureData] = useState<{ drawingSteps: string[], namingRules: string[] }>({ drawingSteps: [], namingRules: [] });
+
+  // Loading states
+  const [isSearching, setIsSearching] = useState(false);
+  const [ocrLoading, setOcrLoading] = useState(false);
+
+  // Scripts loading state
+  const [scriptsLoadedState, setScriptsLoadedState] = useState({
+    jquery: false,
+    threedmol: false,
+    smilesdrawer: false,
+    tesseract: false,
+    jsme: false
+  });
+
+  const scriptsLoaded = scriptsLoadedState.jquery && scriptsLoadedState.threedmol && scriptsLoadedState.smilesdrawer && scriptsLoadedState.tesseract && scriptsLoadedState.jsme;
+
+  // Refs
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const viewerRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => setIsMounted(true), []);
+  // 1. Hydration Safety
+  useEffect(() => {
+    setIsMounted(true);
 
+    // JSME Callback
+    window.jsmeOnLoad = () => {
+      setScriptsLoadedState(prev => ({ ...prev, jsme: true }));
+    };
+  }, []);
+
+  // Initialize JSME when scripts are ready
+  useEffect(() => {
+    if (scriptsLoaded && window.JSApplet && !window.jsmeApplet) {
+      window.jsmeApplet = new window.JSApplet.JSME("jsme_container", "100%", "300px", {
+        options: "query,hydrogens,removehs"
+      });
+    }
+  }, [scriptsLoaded]);
+
+  // Handle Global Paste for Name Image
   useEffect(() => {
     const handlePaste = (e: ClipboardEvent) => {
       const items = e.clipboardData?.items;
       if (!items) return;
+
       for (let i = 0; i < items.length; i++) {
-        if (items[i].type.indexOf('image') !== -1) {
-          const blob = items[i].getAsFile();
-          if (blob) {
-            setImageFile(blob);
-            setPreviewUrl(URL.createObjectURL(blob));
-            setImageWarning(null);
+        if (items[i].type.indexOf("image") !== -1) {
+          const file = items[i].getAsFile();
+          if (file) {
+            e.preventDefault();
+            handleOcrUploadFromFile(file);
+            break;
           }
         }
       }
     };
-    window.addEventListener('paste', handlePaste);
-    return () => window.removeEventListener('paste', handlePaste);
+
+    window.addEventListener("paste", handlePaste);
+    return () => window.removeEventListener("paste", handlePaste);
   }, []);
 
-  const runAnalysis = async (searchQuery: string) => {
-    if (!searchQuery.trim()) return;
+  // Rendering logic whenever SMILES or SDF changes
+  useEffect(() => {
+    if (scriptsLoaded && smiles) {
+      draw2D(smiles);
+    }
+    if (scriptsLoaded && sdfData) {
+      draw3D(sdfData);
+    }
+  }, [smiles, sdfData, scriptsLoaded]);
 
-    setIsLoading(true);
-    setShowResults(false);
-    setError(null);
-    setSmilesData(null);
-    setSdfData(null);
+  // Helper: Draw 2D
+  const draw2D = (smilesStr: string) => {
+    if (!window.SmilesDrawer || !canvasRef.current) return;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     try {
-      // Step 1 (Name to Isomeric SMILES)
-      const nameRes = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${encodeURIComponent(searchQuery.trim())}/property/IsomericSMILES/JSON`);
-      
-      if (!nameRes.ok) {
-        throw new Error("Name fetch failed");
-      }
-      
-      const nameData = await nameRes.json();
-      const smilesStr = nameData.PropertyTable.Properties[0].IsomericSMILES;
-      
-      if (!smilesStr) throw new Error("SMILES not found");
-
-      setSmilesData(smilesStr);
-      setAnalyzedQuery(searchQuery.trim());
-
-      // Step 2 (SMILES to 3D SDF)
-      try {
-        const sdfRes3d = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/${encodeURIComponent(smilesStr)}/SDF?record_type=3d`);
-        if (sdfRes3d.ok) {
-          const sdfStr = await sdfRes3d.text();
-          setSdfData(sdfStr);
-        } else {
-          throw new Error("3D SDF failed");
-        }
-      } catch (sdf3dErr) {
-        // Step 3 (Fallback to 2D SDF)
-        try {
-          const sdfRes2d = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/${encodeURIComponent(smilesStr)}/SDF?record_type=2d`);
-          if (sdfRes2d.ok) {
-            const sdfStr = await sdfRes2d.text();
-            setSdfData(sdfStr);
-          } else {
-            setSdfData(null);
-          }
-        } catch (sdf2dErr) {
-          setSdfData(null);
-        }
-      }
-
-      setShowResults(true);
-    } catch (err) {
-      setError('Molecule not found or API error.');
-    } finally {
-      setIsLoading(false);
+      let options = {
+        width: 400,
+        height: 350,
+        bondThickness: 1.5,
+        fontSizeLarge: 14,
+        compactDrawing: false,
+        terminalCarbons: false
+      };
+      let drawer = new window.SmilesDrawer.Drawer(options);
+      window.SmilesDrawer.parse(smilesStr, (tree: any) => {
+        drawer.draw(tree, "canvas-2d", "light", false);
+      });
+    } catch (e) {
+      console.warn("SmilesDrawer error", e);
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    runAnalysis(query);
-  };
-
-  const handleAnalyzeImage = async () => {
-    if (!imageFile) return;
-    setIsAnalyzingImage(true);
-    setImageWarning(null);
-    setError(null);
+  // Helper: Draw 3D
+  const draw3D = (sdfStr: string) => {
+    if (!window.$3Dmol || !viewerRef.current) return;
+    const container = viewerRef.current;
+    container.innerHTML = "";
 
     try {
-      // @ts-expect-error
-      if (typeof window.Tesseract !== 'undefined') {
-        // @ts-expect-error
-        const { data: { text } } = await window.Tesseract.recognize(imageFile);
-        
-        const cleanedText = text.trim();
-        // Strict check: must contain at least 3 letters, and shouldn't contain typical structure-drawing garbage characters like \
-        const isValidName = /[a-zA-Z]{3,}/.test(cleanedText) && !cleanedText.includes('\\') && !cleanedText.includes('/');
+      const viewer = window.$3Dmol.createViewer(window.$(container));
+      viewer.addModel(sdfStr, "sdf");
+      viewer.setStyle({}, { stick: { radius: 0.15 } });
+      viewer.zoomTo();
+      viewer.render();
+    } catch (e) {
+      console.warn("3Dmol error", e);
+    }
+  };
 
-        if (!isValidName) {
-          setQuery(''); // Clear the input field completely
-          setError('Structure detected or text unreadable. True image-to-structure requires a Python backend. Displaying a mock molecule.');
-          
-          // Directly render a mock complex molecule to prevent UI breaking
-          const mockSmiles = 'CC(C)CCCC=CC'; // generic fallback
-          setSmilesData(mockSmiles);
-          setAnalyzedQuery('');
-          
-          try {
-            const sdfRes3d = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/${encodeURIComponent(mockSmiles)}/SDF?record_type=3d`);
-            if (sdfRes3d.ok) {
-              setSdfData(await sdfRes3d.text());
-            } else {
-              const sdfRes2d = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/${encodeURIComponent(mockSmiles)}/SDF?record_type=2d`);
-              if (sdfRes2d.ok) setSdfData(await sdfRes2d.text());
-              else setSdfData(null);
-            }
-          } catch (err) {
-            setSdfData(null);
-          }
-          
-          setShowResults(true);
-          return; // EXIT THE FUNCTION HERE. DO NOT PROCEED TO FETCH.
+  // Pipeline: Name -> SMILES -> 3D SDF
+  const analyzeName = async (name: string) => {
+    if (!name.trim()) return;
+    setIsSearching(true);
+    setError(null);
+    setSearchTerm(name);
+
+    let retrievedSmiles = "";
+
+    try {
+      // 1. Name to SMILES (NIH CACTUS fallback -> PubChem)
+      try {
+        const cactusRes = await fetch(`https://cactus.nci.nih.gov/chemical/structure/${encodeURIComponent(name)}/smiles`);
+        if (cactusRes.ok) {
+          retrievedSmiles = await cactusRes.text();
+        } else {
+          throw new Error("CACTUS failed");
         }
+      } catch (err) {
+        const pubchemRes = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${encodeURIComponent(name)}/property/IsomericSMILES/JSON`);
+        if (pubchemRes.ok) {
+          const data = await pubchemRes.json();
+          retrievedSmiles = data.PropertyTable.Properties[0].IsomericSMILES;
+        } else {
+          throw new Error("Molecule not found. Please check the spelling.");
+        }
+      }
 
-        setQuery(cleanedText); // Only set if it's a real word
-        await runAnalysis(cleanedText);
-      } else {
-        setError('Tesseract not loaded');
+      setSmiles(retrievedSmiles);
+      setIupacName(name);
+      setNomenclatureData(generateNomenclatureSteps(name));
+
+      // 2. Fetch 3D SDF
+      let sdfResult = "";
+      try {
+        const res3d = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/${encodeURIComponent(retrievedSmiles)}/SDF?record_type=3d`);
+        if (res3d.ok) {
+          sdfResult = await res3d.text();
+        } else {
+          // Fallback to 2D
+          const res2d = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/${encodeURIComponent(retrievedSmiles)}/SDF?record_type=2d`);
+          if (res2d.ok) {
+            sdfResult = await res2d.text();
+          }
+        }
+      } catch (e) {
+        console.warn("SDF Fetch failed", e);
+      }
+      setSdfData(sdfResult);
+
+    } catch (e: any) {
+      setError(e.message || "Molecule not found. Please check the spelling.");
+      setSmiles("");
+      setSdfData("");
+      setIupacName("");
+      setNomenclatureData({ drawingSteps: [], namingRules: [] });
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // Pipeline: Structure -> SMILES -> Name
+  const analyzeStructure = async () => {
+    if (!window.jsmeApplet) return;
+    setIsSearching(true);
+    setError(null);
+    setDrawnName("");
+
+    const drawnSmiles = window.jsmeApplet.smiles();
+    if (!drawnSmiles) {
+      setError("Please draw a structure first.");
+      setIsSearching(false);
+      return;
+    }
+
+    setSmiles(drawnSmiles);
+
+    try {
+      // 1. Structure to Name (PubChem with Cactus Fallback)
+      try {
+        const pubchemRes = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/${encodeURIComponent(drawnSmiles)}/property/IUPACName/JSON`);
+        if (pubchemRes.ok) {
+          const data = await pubchemRes.json();
+          const iupac = data.PropertyTable.Properties[0].IUPACName;
+          setIupacName(iupac);
+          setDrawnName(iupac);
+          setSearchTerm(iupac);
+          setNomenclatureData(generateNomenclatureSteps(iupac));
+        } else {
+          throw new Error("PubChem 404");
+        }
+      } catch (pubchemErr) {
+        // Fallback to Cactus
+        const cactusRes = await fetch(`https://cactus.nci.nih.gov/chemical/structure/${encodeURIComponent(drawnSmiles)}/iupac_name`);
+        if (cactusRes.ok) {
+          const iupac = await cactusRes.text();
+          setIupacName(iupac);
+          setDrawnName(iupac);
+          setSearchTerm(iupac);
+          setNomenclatureData(generateNomenclatureSteps(iupac));
+        } else {
+          throw new Error("Cactus 404");
+        }
       }
     } catch (e) {
-      setError('Image analysis failed.');
+      setDrawnName("Name not available: This specific structure could not be algorithmically named by the standard public databases.");
+      setIupacName("Unknown Structure");
+      setNomenclatureData({ drawingSteps: [], namingRules: [] });
+    }
+
+    try {
+      // 2. Fetch 3D SDF
+      let sdfResult = "";
+      const res3d = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/${encodeURIComponent(drawnSmiles)}/SDF?record_type=3d`);
+      if (res3d.ok) {
+        sdfResult = await res3d.text();
+      } else {
+        const res2d = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/${encodeURIComponent(drawnSmiles)}/SDF?record_type=2d`);
+        if (res2d.ok) sdfResult = await res2d.text();
+      }
+      setSdfData(sdfResult);
+    } catch (e) {
+      console.warn("SDF Fetch failed", e);
     } finally {
-      setIsAnalyzingImage(false);
+      setIsSearching(false);
     }
   };
 
-  // Effect to render 2D Molecule
-  useEffect(() => {
-    if (!showResults || !smilesData || !canvasRef.current || !scriptsLoaded.smiles) return;
-    
-    // @ts-expect-error - SmilesDrawer is attached to window by the CDN script
-    if (typeof window.SmilesDrawer !== "undefined") {
+  // OCR Logic
+  const handleOcrUploadFromFile = async (file: File) => {
+    if (!window.Tesseract) {
+      setError("OCR library is not loaded yet.");
+      return;
+    }
+
+    setOcrLoading(true);
+    setError(null);
+
+    const reader = new FileReader();
+    reader.onload = async () => {
       try {
-        // @ts-expect-error
-        const drawer = new window.SmilesDrawer.Drawer({
-          width: 500,
-          height: 300,
-          compactDrawing: false
-        });
-
-        const currentTheme = resolvedTheme === "dark" ? "dark" : "light";
-        
-        // @ts-expect-error
-        window.SmilesDrawer.parse(smilesData, (tree: any) => {
-          drawer.draw(tree, canvasRef.current, currentTheme, false);
-        }, async (err: any) => {
-          console.warn("SmilesDrawer failed on Isomeric SMILES, fetching Canonical fallback...");
-          try {
-            const res = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${encodeURIComponent(analyzedQuery)}/property/CanonicalSMILES/JSON`);
-            if (res.ok) {
-              const data = await res.json();
-              const canonSmiles = data.PropertyTable.Properties[0].CanonicalSMILES;
-              // @ts-expect-error
-              window.SmilesDrawer.parse(canonSmiles, (tree: any) => {
-                drawer.draw(tree, canvasRef.current, currentTheme, false);
-              }, (err2: any) => console.error("Canonical fallback also failed", err2));
-            }
-          } catch (e) {
-             console.error("Fallback fetch failed", e);
-          }
-        });
-      } catch (e) {
-        console.error("Error rendering 2D structure:", e);
-      }
-    }
-  }, [showResults, smilesData, resolvedTheme, scriptsLoaded.smiles, analyzedQuery]);
-
-  // Effect to render 3D Molecule
-  useEffect(() => {
-    if (!showResults || !viewerRef.current || !scriptsLoaded.d3mol) return;
-    
-    // Clear previous viewer if it exists
-    viewerRef.current.innerHTML = "";
-
-    // @ts-expect-error - $3Dmol is attached to window by the CDN script
-    if (typeof window.$3Dmol !== "undefined") {
-      if (sdfData) {
-        try {
-          // @ts-expect-error
-          const viewer = window.$3Dmol.createViewer(viewerRef.current, { backgroundColor: resolvedTheme === 'dark' ? '#111827' : '#ffffff' });
-          viewer.addModel(sdfData, "sdf");
-          viewer.setStyle({}, { stick: { radius: 0.15 }, sphere: { radius: 0.5 } }); // ball and stick
-          viewer.zoomTo();
-          viewer.render();
-        } catch (e) {
-          console.error("Error rendering 3D structure:", e);
-          viewerRef.current.innerHTML = `<div class="w-full h-full flex items-center justify-center text-sidebar-text">Failed to render 3D model</div>`;
+        const result = await window.Tesseract.recognize(reader.result, 'eng');
+        const text = result.data.text.replace(/[\r\n]+/g, ' ').replace(/[^a-zA-Z0-9\(\),\-\[\]\s]/g, '').trim();
+        if (text) {
+          setSearchTerm(text);
+          analyzeName(text);
+        } else {
+          setError("No readable text found in the image.");
         }
-      } else {
-        viewerRef.current.innerHTML = `<div class="w-full h-full flex items-center justify-center text-sidebar-text">3D model data unavailable</div>`;
+      } catch (err) {
+        setError("Error processing OCR image.");
+      } finally {
+        setOcrLoading(false);
       }
-    }
-  }, [showResults, sdfData, scriptsLoaded.d3mol]);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleOcrInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleOcrUploadFromFile(file);
+  };
+
+  if (!isMounted) return null;
 
   return (
-    <div className="p-8 max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500">
-      {/* Load External Scripts */}
-      <Script 
-        src="https://unpkg.com/smiles-drawer@2.0.1/dist/smiles-drawer.min.js" 
-        strategy="lazyOnload"
-        onLoad={() => setScriptsLoaded(prev => ({ ...prev, smiles: true }))}
-      />
-      <Script 
-        src="https://3Dmol.org/build/3Dmol-min.js" 
-        strategy="lazyOnload"
-        onLoad={() => setScriptsLoaded(prev => ({ ...prev, d3mol: true }))}
-      />
-      <Script 
-        src="https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js" 
-        strategy="lazyOnload"
-        onLoad={() => setScriptsLoaded(prev => ({ ...prev, tesseract: true }))}
-      />
+    <div className="min-h-screen p-8 text-foreground bg-background">
 
-      <header>
-        <h1 className="text-3xl font-bold mb-2">Structure & Naming Explorer</h1>
-        <p className="text-sidebar-text text-sm">
-          Analyze complex organic structures, calculate properties, and visualize in 2D & 3D.
-        </p>
-      </header>
+      {/* Native Next.js Scripts */}
+      <Script src="https://code.jquery.com/jquery-3.6.0.min.js" strategy="afterInteractive" onLoad={() => setScriptsLoadedState(p => ({ ...p, jquery: true }))} />
+      {scriptsLoadedState.jquery && (
+        <Script src="https://3Dmol.org/build/3Dmol-min.js" strategy="afterInteractive" onLoad={() => setScriptsLoadedState(p => ({ ...p, threedmol: true }))} />
+      )}
+      <Script src="https://unpkg.com/smiles-drawer@2.0.1/dist/smiles-drawer.min.js" strategy="afterInteractive" onLoad={() => setScriptsLoadedState(p => ({ ...p, smilesdrawer: true }))} />
+      <Script src="https://unpkg.com/tesseract.js@v4.1.1/dist/tesseract.min.js" strategy="afterInteractive" onLoad={() => setScriptsLoadedState(p => ({ ...p, tesseract: true }))} />
+      <Script src="https://jsme-editor.github.io/dist/jsme/jsme.nocache.js" strategy="afterInteractive" />
 
-      {/* Input Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {!isMounted ? (
-          <div className="col-span-2 h-48 bg-sidebar-bg rounded-2xl animate-pulse flex items-center justify-center border border-sidebar-border shadow-sm">
-            <Loader2 className="w-8 h-8 text-brand animate-spin" />
+      <div className="max-w-6xl mx-auto space-y-8">
+
+        <header className="border-b border-sidebar-border pb-4 flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold flex items-center gap-2">
+              <Sparkles className="w-6 h-6 text-brand" />
+              Chemistry Explorer
+            </h1>
+            <p className="text-sm text-sidebar-text mt-1">Stable API Integration & Visualization Dashboard</p>
           </div>
-        ) : (
-          <>
-            <section className="p-6 rounded-2xl border border-sidebar-border bg-sidebar-bg shadow-sm flex flex-col justify-center">
-              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <Search className="w-5 h-5 text-brand" />
-                Enter IUPAC Name
-              </h2>
-              <form onSubmit={handleSubmit} className="flex gap-3">
-                <div className="relative flex-1">
-                  <input
-                    type="text"
-                    placeholder="e.g., aspirin or benzene"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-sidebar-border bg-background focus:outline-none focus:ring-2 focus:ring-brand/50 transition-shadow"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  disabled={isLoading || !query.trim()}
-                  className="px-6 py-3 bg-brand text-white font-medium rounded-xl hover:bg-brand-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[120px]"
-                >
-                  {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Analyze"}
-                </button>
-              </form>
-              {error && (
-                <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 rounded-lg flex items-start gap-2 text-sm animate-in fade-in">
-                  <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-                  <p>{error}</p>
-                </div>
-              )}
-            </section>
+          <button onClick={() => { setSearchTerm(""); setSmiles(""); setSdfData(""); setIupacName(""); setError(null); setNomenclatureData({ drawingSteps: [], namingRules: [] }); }} className="flex items-center gap-2 text-sidebar-text hover:text-foreground text-sm font-semibold transition-colors">
+            <RotateCcw className="w-4 h-4" /> Reset
+          </button>
+        </header>
 
-            <section 
-              className="p-6 rounded-2xl border-2 border-dashed border-sidebar-border bg-sidebar-bg/50 hover:bg-sidebar-bg hover:border-brand/50 transition-colors shadow-sm flex flex-col items-center justify-center text-center relative overflow-hidden"
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={(e) => {
-                e.preventDefault();
-                if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-                  const file = e.dataTransfer.files[0];
-                  if (file.type.startsWith('image/')) {
-                    setImageFile(file);
-                    setPreviewUrl(URL.createObjectURL(file));
-                    setImageWarning(null);
-                  }
-                }
-              }}
-            >
-              <input 
-                type="file" 
-                accept="image/*" 
-                className="hidden" 
-                ref={fileInputRef}
-                onChange={(e) => {
-                  if (e.target.files && e.target.files[0]) {
-                    setImageFile(e.target.files[0]);
-                    setPreviewUrl(URL.createObjectURL(e.target.files[0]));
-                    setImageWarning(null);
-                  }
-                }}
-              />
-              {previewUrl ? (
-                <div className="absolute inset-0 p-4 bg-sidebar-bg flex flex-col animate-in fade-in duration-300">
-                   <div className="relative flex-1 min-h-0 bg-background rounded-lg border border-sidebar-border shadow-sm flex items-center justify-center mb-3">
-                     <img src={previewUrl} alt="Uploaded" className="max-h-full max-w-full object-contain rounded-lg" />
-                     <button 
-                       onClick={() => { setImageFile(null); setPreviewUrl(null); setImageWarning(null); }}
-                       className="absolute top-2 right-2 p-1.5 bg-background/80 hover:bg-red-500 hover:text-white rounded-full transition-colors shadow-sm border border-sidebar-border"
-                     >
-                       <X className="w-4 h-4" />
-                     </button>
-                   </div>
-                   <button
-                     onClick={handleAnalyzeImage}
-                     disabled={isAnalyzingImage || !scriptsLoaded.tesseract}
-                     className="w-full py-2.5 bg-brand text-white font-medium rounded-xl hover:bg-brand-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shrink-0 shadow-sm"
-                   >
-                     {isAnalyzingImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
-                     Analyze Image
-                   </button>
+        {/* Global Loading & Error States */}
+        {error && (
+          <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 rounded-xl flex items-center gap-3">
+            <AlertCircle className="w-5 h-5" />
+            <span className="font-semibold text-sm">{error}</span>
+          </div>
+        )}
+
+        {(isSearching || ocrLoading) && (
+          <div className="p-4 bg-brand/10 border border-brand/20 text-brand rounded-xl flex items-center gap-3 animate-pulse">
+            <RefreshCw className="w-5 h-5 animate-spin" />
+            <span className="font-semibold text-sm">
+              {ocrLoading ? "Loading... Extracting Text via OCR." : "Loading... Fetching chemical APIs and rendering canvases."}
+            </span>
+          </div>
+        )}
+
+        {/* TOP GRID: Name vs Structure */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+          {/* LEFT COLUMN: Name Explorer */}
+          <div className="bg-sidebar-bg border border-sidebar-border rounded-xl p-6 shadow-sm space-y-5">
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <Search className="w-5 h-5 text-brand" /> Name Explorer
+            </h2>
+
+            <div className="space-y-3">
+              <p className="text-xs text-sidebar-text">Enter an IUPAC name to translate into a structural rendering.</p>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && analyzeName(searchTerm)}
+                  placeholder="Enter IUPAC Name (e.g., Aspirin, Hexane)"
+                  className="flex-1 px-4 py-2.5 bg-background border border-sidebar-border rounded-lg focus:outline-none focus:border-brand transition-colors text-sm font-mono"
+                />
+                <button
+                  onClick={() => analyzeName(searchTerm)}
+                  disabled={isSearching}
+                  className="px-5 py-2.5 bg-brand text-white font-semibold rounded-lg hover:bg-brand-hover disabled:opacity-50 transition-colors"
+                >
+                  Submit
+                </button>
+              </div>
+            </div>
+
+            <div className="border-t border-sidebar-border pt-4 space-y-3">
+              <p className="text-xs font-semibold text-sidebar-text uppercase tracking-wider">Paste or Upload Name Image</p>
+
+              <div className="relative">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleOcrInput}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                />
+                <button className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-sidebar-border hover:border-brand/50 rounded-lg text-sm font-semibold transition-colors bg-background/50 hover:bg-sidebar-item-hover">
+                  <ImageIcon className="w-4 h-4 text-brand" />
+                  Upload Name Image
+                </button>
+              </div>
+              <p className="text-[10px] text-sidebar-text text-center">You can also directly Ctrl+V / Cmd+V an image onto this page.</p>
+            </div>
+          </div>
+
+          {/* RIGHT COLUMN: Structure Explorer */}
+          <div className="bg-sidebar-bg border border-sidebar-border rounded-xl p-6 shadow-sm space-y-5">
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <Eye className="w-5 h-5 text-brand" /> Structure Explorer
+            </h2>
+
+            <div className="space-y-3">
+              <p className="text-xs text-sidebar-text">Draw a compound to derive its name and coordinates.</p>
+
+              {!scriptsLoaded ? (
+                <div className="w-full h-[300px] border border-sidebar-border rounded-lg flex items-center justify-center bg-sidebar-item-active text-sm text-sidebar-text font-semibold">
+                  Loading JSME Editor...
                 </div>
               ) : (
-                <div className="cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                  <div className="w-12 h-12 bg-sidebar-item-active rounded-full flex items-center justify-center mb-3 mx-auto hover:scale-110 transition-transform">
-                    <UploadCloud className="w-6 h-6 text-brand" />
-                  </div>
-                  <h3 className="font-semibold mb-1">Upload Structure Image</h3>
-                  <p className="text-xs text-sidebar-text">
-                    Drag & drop, click, or Ctrl+V to paste
+                <div className="border border-sidebar-border rounded-lg overflow-hidden shadow-inner h-[300px] w-full bg-white relative">
+                  <div id="jsme_container" className="w-full h-full"></div>
+                </div>
+              )}
+
+              <button
+                onClick={analyzeStructure}
+                disabled={isSearching || !scriptsLoaded}
+                className="w-full px-5 py-2.5 bg-brand text-white font-semibold rounded-lg hover:bg-brand-hover disabled:opacity-50 transition-colors"
+              >
+                Analyze Drawn Structure
+              </button>
+
+              {drawnName && (
+                <div className="mt-4 p-4 bg-background border border-sidebar-border rounded-xl shadow-sm">
+                  <p className="text-xs text-sidebar-text font-bold uppercase tracking-wider mb-1">Identified Name</p>
+                  <p className={`text-sm font-mono break-words ${drawnName.includes("Name not available") ? "text-amber-600 dark:text-amber-400" : "text-brand"}`}>
+                    {drawnName}
                   </p>
                 </div>
               )}
-            </section>
-          </>
+            </div>
+          </div>
+        </div>
+
+        {/* BOTTOM GRID: Visualizations & Logic */}
+        {(smiles || isSearching) && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-4">
+
+            {/* PANEL A: 2D Visualization */}
+            <div className="bg-sidebar-bg border border-sidebar-border rounded-xl p-6 shadow-sm space-y-4">
+              <div className="flex justify-between items-center border-b border-sidebar-border pb-3">
+                <h2 className="text-lg font-bold">Panel A: 2D Visualization</h2>
+                {iupacName && <span className="text-xs font-mono bg-brand/10 text-brand px-2 py-1 rounded-md">{iupacName}</span>}
+              </div>
+
+              <div className="w-full h-[350px] bg-white border border-sidebar-border rounded-lg flex items-center justify-center overflow-hidden relative shadow-inner">
+                {scriptsLoaded ? (
+                  <canvas id="canvas-2d" ref={canvasRef} width={400} height={350}></canvas>
+                ) : (
+                  <span className="text-sm text-sidebar-text font-semibold">Loading 2D Canvas...</span>
+                )}
+                {!smiles && isSearching && <div className="absolute inset-0 bg-white/50 backdrop-blur-sm"></div>}
+              </div>
+            </div>
+
+            {/* PANEL B: 3D Visualization */}
+            <div className="bg-sidebar-bg border border-sidebar-border rounded-xl p-6 shadow-sm space-y-4">
+              <div className="flex justify-between items-center border-b border-sidebar-border pb-3">
+                <h2 className="text-lg font-bold">Panel B: 3D Visualization</h2>
+                <span className="text-xs text-sidebar-text flex items-center gap-1">
+                  <Info className="w-3.5 h-3.5" /> Drag to rotate
+                </span>
+              </div>
+
+              <div className="w-full h-[350px] bg-slate-900 border border-slate-800 rounded-lg flex items-center justify-center overflow-hidden relative shadow-inner">
+                {scriptsLoaded ? (
+                  <div id="3dmol-viewer" ref={viewerRef} className="w-full h-full absolute inset-0"></div>
+                ) : (
+                  <span className="text-sm text-slate-400 font-semibold">Loading 3D Viewer...</span>
+                )}
+                {(!sdfData && !isSearching && smiles) && (
+                  <div className="z-10 text-slate-400 text-sm font-semibold flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4" /> No 3D Data Available
+                  </div>
+                )}
+              </div>
+            </div>
+
+          </div>
         )}
+
+        {/* Nomenclature Logic Breakdown */}
+        {(nomenclatureData.drawingSteps.length > 0 || nomenclatureData.namingRules.length > 0) && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-4">
+            {nomenclatureData.drawingSteps.length > 0 && (
+              <div className="bg-sidebar-bg border border-sidebar-border rounded-xl p-6 shadow-sm space-y-4">
+                <h3 className="text-lg font-bold flex items-center gap-2 border-b border-sidebar-border pb-2">
+                  <FileText className="w-5 h-5 text-brand" /> How to Draw This Structure
+                </h3>
+                <ol className="list-decimal list-inside space-y-2">
+                  {nomenclatureData.drawingSteps.map((step, i) => (
+                    <li key={i} className="text-sm text-sidebar-text font-medium">
+                      {step}
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            )}
+
+            {nomenclatureData.namingRules.length > 0 && (
+              <div className="bg-sidebar-bg border border-sidebar-border rounded-xl p-6 shadow-sm space-y-4">
+                <h3 className="text-lg font-bold flex items-center gap-2 border-b border-sidebar-border pb-2">
+                  <FileText className="w-5 h-5 text-brand" /> IUPAC Naming Rules Applied
+                </h3>
+                <ul className="space-y-2">
+                  {nomenclatureData.namingRules.map((rule, i) => (
+                    <li key={i} className="text-sm text-sidebar-text flex items-start gap-2">
+                      <span className="text-brand font-bold mt-0.5">•</span> {rule}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+
       </div>
-
-      {imageWarning && (
-        <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 text-yellow-600 dark:text-yellow-500 rounded-xl flex items-start gap-3 text-sm animate-in fade-in">
-          <AlertCircle className="w-5 h-5 mt-0.5 shrink-0" />
-          <p className="leading-relaxed">{imageWarning}</p>
-        </div>
-      )}
-
-      {/* Results Section */}
-      {showResults && !error && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-in slide-in-from-bottom-4 duration-700 fade-in">
-          
-          {/* Panel A: 2D Viewer */}
-          <div className="p-6 rounded-2xl border border-sidebar-border bg-sidebar-bg shadow-sm flex flex-col">
-            <h3 className="font-semibold text-lg mb-4 flex items-center gap-2 border-b border-sidebar-border pb-3">
-              <Atom className="w-5 h-5 text-brand" />
-              2D Structure
-            </h3>
-            <div className="flex-1 min-h-[300px] bg-background rounded-xl border border-sidebar-border flex items-center justify-center overflow-hidden">
-              <canvas 
-                ref={canvasRef} 
-                id="molecule-canvas"
-                className="max-w-full"
-              />
-            </div>
-          </div>
-
-          {/* Panel B: 3D Viewer */}
-          <div className="p-6 rounded-2xl border border-sidebar-border bg-sidebar-bg shadow-sm flex flex-col">
-            <h3 className="font-semibold text-lg mb-4 flex items-center gap-2 border-b border-sidebar-border pb-3">
-              <Box className="w-5 h-5 text-brand" />
-              3D Model
-            </h3>
-            <div className="flex-1 min-h-[300px] bg-background rounded-xl border border-sidebar-border overflow-hidden relative group">
-              <div className="absolute inset-0 bg-gradient-to-br from-brand/5 to-transparent pointer-events-none z-0"></div>
-              
-              <div 
-                ref={viewerRef} 
-                className="w-full h-full relative z-10 cursor-move"
-                style={{ position: 'relative' }}
-              />
-              
-              <div className="absolute bottom-2 right-2 z-20 text-[10px] text-sidebar-text bg-background/80 px-2 py-1 rounded shadow-sm opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                Scroll to zoom, drag to rotate
-              </div>
-            </div>
-          </div>
-
-          {/* Panel C: Algorithm Logic */}
-          <div className="p-6 rounded-2xl border border-sidebar-border bg-sidebar-bg shadow-sm">
-            <h3 className="font-semibold text-lg mb-4 flex items-center gap-2 border-b border-sidebar-border pb-3">
-              <ListOrdered className="w-5 h-5 text-brand" />
-              Nomenclature Logic
-            </h3>
-            <div className="space-y-4">
-              {generateNomenclatureSteps(analyzedQuery).map((step, index, arr) => (
-                <div className="flex gap-4" key={index}>
-                  <div className="flex flex-col items-center">
-                    <div className="w-6 h-6 rounded-full bg-brand text-white flex items-center justify-center text-xs font-bold shrink-0">{index + 1}</div>
-                    {index < arr.length - 1 && (
-                      <div className="w-px h-full bg-sidebar-border mt-2"></div>
-                    )}
-                  </div>
-                  <div className="pb-4">
-                    <h4 className="font-medium text-sm">{step.title}</h4>
-                    <p className="text-xs text-sidebar-text mt-1">{step.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Panel D: Isomerism & Specs */}
-          <div className="p-6 rounded-2xl border border-sidebar-border bg-sidebar-bg shadow-sm">
-            <h3 className="font-semibold text-lg mb-4 flex items-center gap-2 border-b border-sidebar-border pb-3">
-              <Activity className="w-5 h-5 text-brand" />
-              Properties & Isomerism
-            </h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 rounded-xl bg-background border border-sidebar-border col-span-2">
-                <p className="text-xs text-sidebar-text mb-1 uppercase font-semibold tracking-wider">SMILES Notation</p>
-                <p className="text-sm font-mono break-all text-brand">{smilesData}</p>
-              </div>
-              <div className="p-4 rounded-xl bg-background border border-sidebar-border col-span-2">
-                 <p className="text-xs text-sidebar-text mb-1 uppercase font-semibold tracking-wider">3D Data Source</p>
-                 <p className="text-sm font-medium">{sdfData ? 'PubChem SDF Loaded' : 'No 3D Model Available'}</p>
-              </div>
-            </div>
-          </div>
-          
-        </div>
-      )}
     </div>
   );
 }
