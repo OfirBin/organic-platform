@@ -1,5 +1,6 @@
 import { getDocuments, uploadDocument, deleteDocument } from './actions'
 import { FileText, Upload, BookOpen, Clock, Layers, Trash2 } from 'lucide-react'
+import Link from 'next/link'
 
 export default async function StudyPage() {
   const documents = await getDocuments();
@@ -77,17 +78,19 @@ export default async function StudyPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {documents.map((doc) => (
-                <div key={doc.id} className="p-5 bg-background border border-sidebar-border rounded-xl hover:border-brand/50 transition-colors group">
+                <div key={doc.id} className="p-5 bg-background border border-sidebar-border rounded-xl hover:border-brand/50 transition-colors group relative">
                   <div className="flex items-start gap-4">
                     <div className="w-10 h-10 rounded-lg bg-brand/10 text-brand flex items-center justify-center shrink-0">
                       <FileText className="w-5 h-5" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="font-bold text-foreground truncate" title={doc.title}>
-                        {doc.title}
+                        <Link href={`/study/${doc.id}`} className="after:absolute after:inset-0 focus:outline-none">
+                          {doc.title}
+                        </Link>
                       </h3>
                       <div className="flex items-center justify-between mt-2">
-                        <div className="flex items-center gap-4 text-xs text-sidebar-text font-medium">
+                        <div className="flex items-center gap-4 text-xs text-sidebar-text font-medium relative z-10">
                           <span className="flex items-center gap-1.5">
                             <Clock className="w-3.5 h-3.5" />
                             {new Date(doc.createdAt).toLocaleDateString()}
@@ -97,10 +100,10 @@ export default async function StudyPage() {
                             {doc.chunks.length} Chunks
                           </span>
                         </div>
-                        <form action={deleteDocument.bind(null, doc.id)}>
+                        <form action={deleteDocument.bind(null, doc.id)} className="relative z-10">
                           <button 
                             type="submit" 
-                            className="p-1.5 text-sidebar-text/50 hover:text-red-500 hover:bg-red-500/10 rounded-md transition-colors opacity-0 group-hover:opacity-100"
+                            className="p-1.5 text-sidebar-text/50 hover:text-red-500 hover:bg-red-500/10 rounded-md transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
                             title="Delete Document"
                           >
                             <Trash2 className="w-4 h-4" />
