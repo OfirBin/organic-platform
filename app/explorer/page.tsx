@@ -356,10 +356,16 @@ export default function ExplorerPage() {
         if (res3d.ok) {
           sdfResult = await res3d.text();
         } else {
-          // Fallback to 2D
-          const res2d = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/${encodeURIComponent(retrievedSmiles)}/SDF?record_type=2d`);
-          if (res2d.ok) {
-            sdfResult = await res2d.text();
+          // Secondary: NIH Cactus 3D
+          const cactus3d = await fetch(`https://cactus.nci.nih.gov/chemical/structure/${encodeURIComponent(retrievedSmiles)}/sdf?get3d=true`);
+          if (cactus3d.ok) {
+            sdfResult = await cactus3d.text();
+          } else {
+            // Tertiary: PubChem 2D
+            const res2d = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/${encodeURIComponent(retrievedSmiles)}/SDF?record_type=2d`);
+            if (res2d.ok) {
+              sdfResult = await res2d.text();
+            }
           }
         }
       } catch (e) {
@@ -434,8 +440,13 @@ export default function ExplorerPage() {
       if (res3d.ok) {
         sdfResult = await res3d.text();
       } else {
-        const res2d = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/${encodeURIComponent(drawnSmiles)}/SDF?record_type=2d`);
-        if (res2d.ok) sdfResult = await res2d.text();
+        const cactus3d = await fetch(`https://cactus.nci.nih.gov/chemical/structure/${encodeURIComponent(drawnSmiles)}/sdf?get3d=true`);
+        if (cactus3d.ok) {
+          sdfResult = await cactus3d.text();
+        } else {
+          const res2d = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/${encodeURIComponent(drawnSmiles)}/SDF?record_type=2d`);
+          if (res2d.ok) sdfResult = await res2d.text();
+        }
       }
       setSdfData(sdfResult);
     } catch (e) {
