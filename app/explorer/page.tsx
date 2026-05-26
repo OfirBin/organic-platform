@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Script from "next/script";
 import {
   Search, UploadCloud, Info, Sparkles, RotateCcw,
-  AlertCircle, RefreshCw, Eye, Image as ImageIcon, FileText
+  AlertCircle, RefreshCw, Eye, Image as ImageIcon, FileText, MousePointerClick, Check
 } from "lucide-react";
 
 declare global {
@@ -171,9 +171,14 @@ function generateNomenclatureSteps(name: string): { drawingSteps: string[], nami
     { key: "but", val: 4 }, { key: "prop", val: 3 }, { key: "eth", val: 2 },
     { key: "meth", val: 1 }
   ];
+  const isCyclo = /cyclo/i.test(workingName);
   for (let p of prefixes) {
     if (workingName.includes(p.key)) {
-      backbone.add(`Start by drawing a continuous carbon chain of ${p.val} atoms.`);
+      if (isCyclo) {
+        backbone.add(`Start by drawing a continuous carbon ring of ${p.val} atoms.`);
+      } else {
+        backbone.add(`Start by drawing a continuous carbon chain of ${p.val} atoms.`);
+      }
       break;
     }
   }
@@ -220,9 +225,16 @@ export default function ExplorerPage() {
 
   const scriptsLoaded = scriptsLoadedState.jquery && scriptsLoadedState.threedmol && scriptsLoadedState.smilesdrawer && scriptsLoadedState.tesseract && scriptsLoadedState.jsme;
 
+  // 3D Viewer Interactive States
+  const [showHydrogens, setShowHydrogens] = useState(true);
+  const [highlightHalogens, setHighlightHalogens] = useState(false);
+  const [newmanModeActive, setNewmanModeActive] = useState(false);
+
   // Refs
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const viewerRef = useRef<HTMLDivElement>(null);
+  const viewerInstanceRef = useRef<any>(null);
+  const newmanSelectionRef = useRef<any[]>([]);
 
   // 1. Hydration Safety
   useEffect(() => {
@@ -300,6 +312,74 @@ export default function ExplorerPage() {
     }
   };
 
+  const apply3DStyles = () => {
+    const viewer = viewerInstanceRef.current;
+    if (!viewer) return;
+
+    viewer.removeAllLabels();
+    viewer.setStyle({}, { stick: { radius: 0.15 } });
+
+    if (!showHydrogens) {
+      viewer.setStyle({elem: 'H'}, {hidden: true});
+    }
+
+    if (highlightHalogens) {
+      viewer.setStyle({elem: ['F', 'Cl', 'Br', 'I']}, {sphere: {color: 'green', radius: 0.5}, stick: {radius: 0.15}});
+    }
+
+    if (newmanModeActive) {
+      viewer.setClickable({}, true, (atom: any) => {
+        if (atom.elem !== 'C') return; 
+        
+        const sel = newmanSelectionRef.current;
+        if (sel.length >= 2) return;
+        
+        sel.push(atom);
+        viewer.setStyle({serial: atom.serial}, {sphere: {color: 'yellow', radius: 0.4}, stick: {radius: 0.15}});
+        viewer.render();
+
+        if (sel.length === 2) {
+          const [a1, a2] = sel;
+          const dx = a2.x - a1.x;
+          const dy = a2.y - a1.y;
+          const dz = a2.z - a1.z;
+          const len = Math.sqrt(dx*dx + dy*dy + dz*dz);
+          const nx = dx/len, ny = dy/len, nz = dz/len;
+          
+          const axis_x = -ny;
+          const axis_y = nx;
+          const axis_z = 0;
+          const axis_len = Math.sqrt(axis_x*axis_x + axis_y*axis_y);
+          
+          if (axis_len > 0.001) {
+             const angle = Math.acos(-nz);
+             const s = Math.sin(angle/2) / axis_len;
+             const currentView = viewer.getView();
+             currentView[0] = axis_x * s;
+             currentView[1] = axis_y * s;
+             currentView[2] = axis_z * s;
+             currentView[3] = Math.cos(angle/2);
+             viewer.setView(currentView);
+          }
+          
+          viewer.zoomTo({serial: a1.serial});
+          viewer.render();
+          setTimeout(() => alert("Newman view generated! Camera is now aligned along the C-C bond."), 100);
+        }
+      });
+    } else {
+      viewer.setClickable({}, false);
+      newmanSelectionRef.current = [];
+    }
+  };
+
+  useEffect(() => {
+    if (viewerInstanceRef.current && sdfData) {
+      apply3DStyles();
+      viewerInstanceRef.current.render();
+    }
+  }, [showHydrogens, highlightHalogens, newmanModeActive, sdfData]);
+
   // Helper: Draw 3D
   const draw3D = (sdfStr: string) => {
     if (!window.$3Dmol || !viewerRef.current) return;
@@ -308,8 +388,9 @@ export default function ExplorerPage() {
 
     try {
       const viewer = window.$3Dmol.createViewer(window.$(container));
+      viewerInstanceRef.current = viewer;
       viewer.addModel(sdfStr, "sdf");
-      viewer.setStyle({}, { stick: { radius: 0.15 } });
+      apply3DStyles();
       viewer.zoomTo();
       viewer.render();
     } catch (e) {
@@ -650,10 +731,51 @@ export default function ExplorerPage() {
             <div className="bg-sidebar-bg border border-sidebar-border rounded-xl p-6 shadow-sm space-y-4">
               <div className="flex justify-between items-center border-b border-sidebar-border pb-3">
                 <h2 className="text-lg font-bold">Panel B: 3D Visualization</h2>
-                <span className="text-xs text-sidebar-text flex items-center gap-1">
-                  <Info className="w-3.5 h-3.5" /> Drag to rotate
-                </span>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => setShowHydrogens(!showHydrogens)}
+                    className={`text-xs px-2 py-1 rounded-md border font-medium flex items-center gap-1 transition-colors ${showHydrogens ? 'bg-sidebar-item-active border-sidebar-border text-foreground' : 'bg-brand/10 border-brand/20 text-brand'}`}
+                  >
+                    H-Atoms {showHydrogens ? 'On' : 'Off'}
+                  </button>
+                  <button 
+                    onClick={() => setHighlightHalogens(!highlightHalogens)}
+                    className={`text-xs px-2 py-1 rounded-md border font-medium flex items-center gap-1 transition-colors ${highlightHalogens ? 'bg-green-500/10 border-green-500/20 text-green-500' : 'bg-sidebar-item-active border-sidebar-border text-foreground'}`}
+                  >
+                    Halogens
+                  </button>
+                  <button 
+                    onClick={() => {
+                      setNewmanModeActive(!newmanModeActive);
+                      if (newmanModeActive && viewerInstanceRef.current) {
+                        newmanSelectionRef.current = [];
+                        viewerInstanceRef.current.zoomTo();
+                      }
+                    }}
+                    className={`text-xs px-2 py-1 rounded-md border font-medium flex items-center gap-1 transition-colors ${newmanModeActive ? 'bg-brand border-brand text-white' : 'bg-sidebar-item-active border-sidebar-border text-foreground'}`}
+                  >
+                    <MousePointerClick className="w-3 h-3" /> Newman Mode
+                  </button>
+                </div>
               </div>
+              
+              {newmanModeActive && (
+                 <div className="bg-brand/10 text-brand text-xs font-semibold p-2 rounded-lg border border-brand/20 flex items-center justify-between">
+                    <span>Click exactly 2 adjacent Carbon atoms in the 3D viewer to align the camera.</span>
+                    {newmanSelectionRef.current.length > 0 && (
+                      <button 
+                        onClick={() => {
+                          newmanSelectionRef.current = [];
+                          apply3DStyles();
+                          viewerInstanceRef.current.render();
+                        }}
+                        className="text-white bg-brand px-2 py-0.5 rounded text-[10px] hover:bg-brand-hover"
+                      >
+                        Reset Selection
+                      </button>
+                    )}
+                 </div>
+              )}
 
               <div className="w-full h-[350px] bg-slate-900 border border-slate-800 rounded-lg flex items-center justify-center overflow-hidden relative shadow-inner">
                 {scriptsLoaded ? (
