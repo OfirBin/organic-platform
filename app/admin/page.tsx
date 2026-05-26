@@ -1,13 +1,34 @@
-import { addQuestion, getQuestions } from './actions'
+import { addQuestion, getQuestions, autoImportExam } from './actions'
+import { SubmitButton } from './SubmitButton'
 
 export default async function AdminPage() {
   const questions = await getQuestions()
 
   return (
-    <div className="p-8 max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 text-black">
-      {/* Left Column: Input Form */}
-      <div className="bg-white p-6 rounded-lg shadow border">
-        <h2 className="text-2xl font-bold mb-4">Add New Question</h2>
+    <div className="p-8 max-w-7xl mx-auto space-y-8 text-black">
+      
+      {/* AI Bulk Import Section */}
+      <div className="bg-indigo-50 p-6 rounded-xl shadow-sm border border-indigo-100">
+        <h2 className="text-2xl font-bold mb-2 text-indigo-900">AI Bulk Import</h2>
+        <p className="text-sm text-indigo-700 mb-4">Upload an Exam PDF. Our AI will automatically extract all questions and add them to the Question Bank.</p>
+        <form action={autoImportExam} className="flex flex-col sm:flex-row gap-4 items-center">
+          <input 
+            type="file" 
+            name="file" 
+            accept="application/pdf"
+            required 
+            className="flex-1 border border-indigo-200 bg-white p-2 rounded w-full sm:w-auto" 
+          />
+          <div className="w-full sm:w-48">
+            <SubmitButton>Auto Import</SubmitButton>
+          </div>
+        </form>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* Left Column: Input Form */}
+        <div className="bg-white p-6 rounded-lg shadow border">
+          <h2 className="text-2xl font-bold mb-4">Add New Question</h2>
         <form action={addQuestion} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700">Topic (e.g. SN2)</label>
@@ -52,6 +73,7 @@ export default async function AdminPage() {
               </div>
             ))
           )}
+        </div>
         </div>
       </div>
     </div>
