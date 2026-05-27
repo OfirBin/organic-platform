@@ -70,13 +70,13 @@ export async function autoImportExam(formData: FormData) {
 
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-1.5-pro",
+      model: "gemini-1.5-pro-latest",
       generationConfig: {
         responseMimeType: "application/json"
       }
     });
 
-    const prompt = "You are an expert Organic Chemistry professor. Read this exam PDF. Extract every single multiple-choice or open-ended question. For each question, extract the correct answer, assign it a broad chemistry 'topic' (e.g., SN1/SN2, Stereochemistry, Spectroscopy), and note the source exam. Return strictly a JSON array of objects matching this schema: [{ \"text\": string, \"answer\": string, \"topic\": string, \"sourceExam\": string }].";
+    const prompt = "You are an expert Organic Chemistry professor. Read this exam PDF and extract every multiple-choice or open-ended question. \nFor each question, extract the correct answer. Then, extract the provided incorrect multiple-choice options. \nCRITICAL RULE: If the incorrect options are clearly readable, extract them exactly as written. If the question is open-ended, or the incorrect options are unreadable/missing, you must generate 3 highly plausible but incorrect organic chemistry answers based on common student misconceptions.\nReturn strictly a JSON array of objects matching this schema: [{ \"text\": string, \"answer\": string, \"distractors\": string[], \"topic\": string, \"sourceExam\": string }].";
 
     let result;
     let retries = 3;
@@ -102,8 +102,16 @@ export async function autoImportExam(formData: FormData) {
     }
 
     const responseText = result.response.text();
-    const cleanedText = responseText.replace(/```json/i, '').replace(/```/g, '').trim();
-    const parsedQuestions = JSON.parse(cleanedText) as { text: string, answer: string, topic: string, sourceExam: string }[];
+    let cleanedText = responseText.replace(/```json/i, '').replace(/```/g, '').trim();
+    
+    // Find the actual JSON array bounds in case the model added conversational text
+    const jsonStartIndex = cleanedText.indexOf('[');
+    const jsonEndIndex = cleanedText.lastIndexOf(']') + 1;
+    if (jsonStartIndex !== -1 && jsonEndIndex !== -1 && jsonEndIndex > jsonStartIndex) {
+      cleanedText = cleanedText.slice(jsonStartIndex, jsonEndIndex);
+    }
+    
+    const parsedQuestions = JSON.parse(cleanedText) as { text: string, answer: string, distractors: string[], topic: string, sourceExam: string }[];
 
     // Insert to database
     for (const q of parsedQuestions) {
@@ -111,6 +119,7 @@ export async function autoImportExam(formData: FormData) {
         data: {
           text: q.text,
           answer: q.answer,
+          distractors: JSON.stringify(q.distractors),
           topic: q.topic,
           sourceExam: q.sourceExam,
           stat: {
@@ -127,7 +136,8 @@ export async function autoImportExam(formData: FormData) {
 
   } catch (error) {
     console.error('Failed to import exam:', error);
-    throw new Error('Failed to import exam. Please try again.');
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to import exam. Please try again. Details: ${errorMessage}`);
   } finally {
     try {
       if (fs.existsSync(tempFilePath)) {
