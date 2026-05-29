@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { getStudyQuestions, updateQuestionStat } from './actions';
 import Link from 'next/link';
 import type { Question, CardStat } from '@prisma/client';
@@ -10,7 +10,6 @@ type QuestionWithStat = Question & { stat: CardStat | null };
 export default function StudyDashboard() {
   const [questions, setQuestions] = useState<QuestionWithStat[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [showAnswer, setShowAnswer] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -32,7 +31,6 @@ export default function StudyDashboard() {
     if (!currentQuestion) return;
 
     // Optimistically advance to next question
-    setShowAnswer(false);
     setCurrentIndex((prev) => prev + 1);
 
     // Update local stat to immediately reflect in mastery calculation
@@ -113,6 +111,13 @@ export default function StudyDashboard() {
 
   const currentQuestion = questions[currentIndex];
   
+  const currentOptions = useMemo(() => {
+    if (!currentQuestion) return [];
+    const wrongAnswers = JSON.parse(currentQuestion.distractors || '[]');
+    const allOptions = [currentQuestion.answer, ...wrongAnswers];
+    return allOptions.sort(() => 0.5 - Math.random());
+  }, [currentQuestion?.id]);
+  
   // Calculate mastery
   let totalStudied = 0;
   let totalCorrect = 0;
@@ -186,48 +191,19 @@ export default function StudyDashboard() {
           )}
         </div>
 
-        {/* Divider and Answer Section */}
-        {showAnswer && (
-          <div className="border-t-2 border-dashed border-slate-200 bg-slate-50 animate-in fade-in slide-in-from-top-8 duration-500">
-            <div className="p-8 sm:p-14 text-center">
-              <h3 className="text-sm uppercase tracking-widest font-bold text-indigo-400 mb-6 flex items-center justify-center gap-2">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                Answer
-              </h3>
-              <div className="text-xl sm:text-2xl font-medium text-slate-700 leading-relaxed max-w-2xl mx-auto">
-                {currentQuestion.answer}
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Action Area */}
-        <div className="p-6 sm:p-8 bg-slate-100/50 border-t border-slate-100 flex justify-center">
-          {!showAnswer ? (
-            <button
-              onClick={() => setShowAnswer(true)}
-              className="w-full max-w-md py-4 px-8 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl font-bold text-lg shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1 active:translate-y-0"
-            >
-              Show Answer
-            </button>
-          ) : (
-            <div className="flex w-full max-w-lg gap-4 sm:gap-6">
+        <div className="p-6 sm:p-8 bg-slate-100/50 border-t border-slate-100">
+          <div className="flex flex-col gap-3 w-full max-w-2xl mx-auto">
+            {currentOptions.map((option, idx) => (
               <button
-                onClick={() => handleGrade(false)}
-                className="flex-1 py-4 px-6 bg-white border-2 border-rose-200 hover:bg-rose-50 text-rose-600 rounded-2xl font-bold text-lg shadow-sm hover:shadow-md transition-all transform hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-2"
+                key={idx}
+                onClick={() => handleGrade(option === currentQuestion.answer)}
+                className="w-full text-left p-5 rounded-2xl border-2 border-slate-200 hover:border-indigo-400 bg-white hover:bg-indigo-50 font-medium text-slate-700 transition-all active:scale-[0.98]"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
-                Review
+                {option}
               </button>
-              <button
-                onClick={() => handleGrade(true)}
-                className="flex-1 py-4 px-6 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-2"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
-                Got It
-              </button>
-            </div>
-          )}
+            ))}
+          </div>
         </div>
       </div>
     </div>

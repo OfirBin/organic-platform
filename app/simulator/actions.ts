@@ -68,13 +68,10 @@ export async function generateExam(config: ExamConfig) {
   const selected = shuffled.slice(0, config.limit);
 
   return selected.map((q, idx) => {
-    // Generate dummy options including the correct answer
-    // In a production app, the schema would have a specific JSON field for options.
+    const wrongAnswers = JSON.parse(q.distractors || '[]');
     const rawOptions = [
       q.answer,
-      `Alternative Option ${idx}-A`,
-      `Alternative Option ${idx}-B`,
-      "None of the above"
+      ...wrongAnswers
     ];
     
     // Shuffle options
