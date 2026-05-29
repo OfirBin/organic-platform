@@ -1,5 +1,6 @@
 import { addQuestion, getQuestions, autoImportExam } from './actions'
 import { SubmitButton } from './SubmitButton'
+import { DeleteButton } from './DeleteButton'
 
 export default async function AdminPage() {
   const questions = await getQuestions()
@@ -67,8 +68,9 @@ export default async function AdminPage() {
                 </div>
                 {q.text && <p className="font-semibold mb-2">{q.text}</p>}
                 <p className="text-sm text-gray-700 bg-white p-2 border rounded">{q.answer}</p>
-                <div className="mt-2 text-xs text-gray-400 font-mono">
-                  Ease: {q.stat?.easeFactor} | Studied: {q.stat?.timesStudied}x
+                <div className="mt-2 text-xs text-gray-400 font-mono flex items-center justify-between">
+                  <span>Ease: {q.stat?.easeFactor} | Studied: {q.stat?.timesStudied}x</span>
+                  <DeleteButton questionId={q.id} />
                 </div>
               </div>
             ))

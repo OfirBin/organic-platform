@@ -150,3 +150,19 @@ export async function autoImportExam(formData: FormData) {
 
   revalidatePath('/admin');
 }
+
+export async function deleteQuestion(questionId: string) {
+  try {
+    await prisma.$transaction([
+      prisma.cardStat.deleteMany({ where: { questionId } }),
+      prisma.question.delete({ where: { id: questionId } })
+    ]);
+    
+    revalidatePath('/admin');
+    revalidatePath('/simulator');
+    revalidatePath('/dashboard');
+  } catch (error) {
+    console.error('Failed to delete question:', error);
+    throw new Error('Failed to delete question.');
+  }
+}
