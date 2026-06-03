@@ -18,7 +18,8 @@ import {
   ListOrdered,
   RefreshCw
 } from "lucide-react";
-import { generateExam, getAvailableYears, availableTopics } from "./actions";
+import { generateExam, getAvailableYears } from "./actions";
+import { availableTopics } from "./constants";
 import SmilesRenderer from "../components/SmilesRenderer";
 
 type Question = {
@@ -34,7 +35,7 @@ type Question = {
 
 export default function SimulatorPage() {
   const [phase, setPhase] = useState<"setup" | "exam" | "review">("setup");
-  const [selectedTopics, setSelectedTopics] = useState<string[]>(availableTopics);
+  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [feedbackMode, setFeedbackMode] = useState<"immediate" | "end">("immediate");
   
   // Setup Config State
@@ -51,6 +52,7 @@ export default function SimulatorPage() {
   const [showSolution, setShowSolution] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
+    setSelectedTopics(availableTopics);
     getAvailableYears().then(years => {
       setAvailableYears(years);
       setConfigYears(years); // Default all checked

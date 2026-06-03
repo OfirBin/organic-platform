@@ -1,12 +1,17 @@
+import 'dotenv/config'
 import prisma from '../lib/prisma'
 import fs from 'fs'
 import path from 'path'
 
 async function main() {
+    if (!process.env.DIRECT_URL) {
+      throw new Error("Critical: DIRECT_URL is missing from the environment configuration. Ensure your .env file is present in the root directory.");
+    }
+
     console.log('Starting massive data injection...')
 
     // Read the JSON file
-    const filePath = path.join(process.cwd(), 'master_exams.json', 'ai_studio_code.json')
+    const filePath = path.join(process.cwd(), 'master_exam.json')
     const fileData = fs.readFileSync(filePath, 'utf-8')
     const questions = JSON.parse(fileData)
 

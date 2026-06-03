@@ -32,22 +32,7 @@ export async function getAvailableYears() {
   return Array.from(years).sort((a, b) => parseInt(b) - parseInt(a));
 }
 
-export type ExamConfig = {
-  limit: number;
-  source: "real" | "ai" | "both";
-  years: string[];
-  topics: string[];
-};
-
-export const availableTopics = [
-  "Alkanes & Cycloalkanes",
-  "Stereochemistry",
-  "Nucleophilic Substitution (SN1/SN2)",
-  "Elimination Reactions (E1/E2)",
-  "Alkenes & Alkynes",
-  "Aromaticity",
-  "Spectroscopy (NMR/IR)"
-];
+import { type ExamConfig, availableTopics } from './constants';
 
 export async function generateExam(config: ExamConfig) {
   const whereClause: any = {};
