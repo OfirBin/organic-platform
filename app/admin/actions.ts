@@ -43,6 +43,22 @@ export async function getQuestions() {
   })
 }
 
+export async function getQuestionStats() {
+  const grouped = await prisma.question.groupBy({
+    by: ['topic'],
+    _count: {
+      _all: true
+    }
+  });
+  
+  const total = await prisma.question.count();
+  
+  return {
+    grouped: grouped.map(g => ({ topic: g.topic, count: g._count._all })),
+    total
+  };
+}
+
 export async function autoImportExam(formData: FormData) {
   const file = formData.get('file') as File;
 

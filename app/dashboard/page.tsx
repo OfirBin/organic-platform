@@ -4,8 +4,20 @@ import { useEffect, useState, useMemo } from 'react';
 import { getStudyQuestions, updateQuestionStat } from './actions';
 import Link from 'next/link';
 import type { Question, CardStat } from '@prisma/client';
+import SmilesRenderer from '../components/SmilesRenderer';
 
 type QuestionWithStat = Question & { stat: CardStat | null };
+
+function parseDistractors(distractorsStr: string | null | undefined): string[] {
+  if (!distractorsStr) return [];
+  try {
+    const parsed = JSON.parse(distractorsStr);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.error("Failed to parse distractors payload:", distractorsStr);
+    return []; // Safe fallback
+  }
+}
 
 export default function StudyDashboard() {
   const [questions, setQuestions] = useState<QuestionWithStat[]>([]);
@@ -113,7 +125,7 @@ export default function StudyDashboard() {
   
   const currentOptions = useMemo(() => {
     if (!currentQuestion) return [];
-    const wrongAnswers = JSON.parse(currentQuestion.distractors || '[]');
+    const wrongAnswers = parseDistractors(currentQuestion.distractors);
     const allOptions = [currentQuestion.answer, ...wrongAnswers];
     return allOptions.sort(() => 0.5 - Math.random());
   }, [currentQuestion?.id]);
@@ -187,6 +199,19 @@ export default function StudyDashboard() {
           {currentQuestion.imageUrl && (
             <div className="mt-8 w-full max-w-lg mx-auto rounded-2xl overflow-hidden border-2 border-slate-100 shadow-sm">
               <img src={currentQuestion.imageUrl} alt="Question figure" className="w-full h-auto object-contain bg-slate-50" />
+            </div>
+          )}
+
+          {currentQuestion.smiles && (
+            <div className="mt-6 w-full max-w-lg mx-auto bg-white rounded-2xl overflow-hidden border-2 border-slate-100 shadow-sm p-4">
+              <SmilesRenderer smiles={currentQuestion.smiles} id={`dashboard-smiles-${currentQuestion.id}`} />
+            </div>
+          )}
+
+          {currentQuestion.visualDescription && (
+            <div className="mt-6 w-full max-w-lg mx-auto p-4 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-600 italic text-left">
+               <span className="font-semibold not-italic text-indigo-600 block mb-1">Visual Description</span>
+               {currentQuestion.visualDescription}
             </div>
           )}
         </div>

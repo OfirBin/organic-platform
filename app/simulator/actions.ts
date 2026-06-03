@@ -2,6 +2,17 @@
 
 import prisma from '@/lib/prisma'
 
+function parseDistractors(distractorsStr: string | null | undefined): string[] {
+  if (!distractorsStr) return [];
+  try {
+    const parsed = JSON.parse(distractorsStr);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.error("Failed to parse distractors payload:", distractorsStr);
+    return []; // Safe fallback
+  }
+}
+
 export async function getAvailableYears() {
   const questions = await prisma.question.findMany({
     where: { sourceExam: { not: null } },
@@ -28,11 +39,23 @@ export type ExamConfig = {
   topics: string[];
 };
 
+export const availableTopics = [
+  "Alkanes & Cycloalkanes",
+  "Stereochemistry",
+  "Nucleophilic Substitution (SN1/SN2)",
+  "Elimination Reactions (E1/E2)",
+  "Alkenes & Alkynes",
+  "Aromaticity",
+  "Spectroscopy (NMR/IR)"
+];
+
 export async function generateExam(config: ExamConfig) {
   const whereClause: any = {};
 
   if (config.topics && config.topics.length > 0) {
-    whereClause.topic = { in: config.topics };
+    if (config.topics.length !== availableTopics.length) {
+      whereClause.topic = { in: config.topics };
+    }
   }
 
   if (config.source === "real") {
@@ -68,7 +91,7 @@ export async function generateExam(config: ExamConfig) {
   const selected = shuffled.slice(0, config.limit);
 
   return selected.map((q, idx) => {
-    const wrongAnswers = JSON.parse(q.distractors || '[]');
+    const wrongAnswers = parseDistractors(q.distractors);
     const rawOptions = [
       q.answer,
       ...wrongAnswers

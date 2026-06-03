@@ -8,7 +8,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider  = "postgresql"
 }
 
 model Question {
@@ -22,6 +22,9 @@ model Question {
   updatedAt  DateTime @updatedAt
   distractors String?
   stat       CardStat?
+  hasImage          Boolean @default(false)
+  visualDescription String? // A meticulous text description of the image
+  smiles            String? // The SMILES string of the molecule to render in JSME  
 }
 
 model CardStat {

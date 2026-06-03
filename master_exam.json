@@ -1,0 +1,800 @@
+[
+    {
+        "text": "עבור כל זוג חומרים, ציינו בתוך הריבוע שבין החומרים סימן גדול/קטן או שווה ( < = > ) בהתאם לקריטריון המופיע בכל שאלה. \nא. כמות האלקטרונים באורביטלי p",
+        "hasImage": true,
+        "visualDescription": "A comparison between two molecules based on the number of electrons in p orbitals. The molecule on the left is phenol, which consists of a benzene ring bonded to a hydroxyl group. The molecule on the right is cyclohexanol, which consists of a cyclohexane ring bonded to a hydroxyl group. An equals sign is drawn inside the box between them.",
+        "smiles": "c1ccc(cc1)O",
+        "answer": ">",
+        "distractors": [
+            "<",
+            "=",
+            "לא ניתן לקבוע"
+        ],
+        "topic": "Aromaticity",
+        "sourceExam": "2024 Moed A"
+    },
+    {
+        "text": "עבור כל זוג חומרים, ציינו בתוך הריבוע שבין החומרים סימן גדול/קטן או שווה ( < = > ) בהתאם לקריטריון המופיע בכל שאלה. \nב. טמפרטורת רתיחה",
+        "hasImage": true,
+        "visualDescription": "A comparison between two molecules based on boiling point. The molecule on the left is dimethylamine. The molecule on the right is propylamine. A 'less than' sign is drawn inside the box between them.",
+        "smiles": "CNC",
+        "answer": "<",
+        "distractors": [
+            ">",
+            "=",
+            "לא ניתן לקבוע"
+        ],
+        "topic": "Intermolecular Forces",
+        "sourceExam": "2024 Moed A"
+    },
+    {
+        "text": "עבור כל זוג חומרים, ציינו בתוך הריבוע שבין החומרים סימן גדול/קטן או שווה ( < = > ) בהתאם לקריטריון המופיע בכל שאלה. \nג. ריאקטיביות כלפי תגובת הידרוגנציה (H2, Pt)",
+        "hasImage": true,
+        "visualDescription": "A comparison between two molecules based on reactivity towards hydrogenation (H2, Pt). The molecule on the left is benzene. The molecule on the right is propene. A 'less than' sign is drawn inside the box between them.",
+        "smiles": "c1ccccc1",
+        "answer": "<",
+        "distractors": [
+            ">",
+            "=",
+            "לא ניתן לקבוע"
+        ],
+        "topic": "Alkene Reactions",
+        "sourceExam": "2024 Moed A"
+    },
+    {
+        "text": "מהו מספר הסטריאואיזומרים האפשריים עבור 4,5-dibromo-3-heptene?",
+        "hasImage": false,
+        "visualDescription": null,
+        "smiles": "CCC(Br)C(Br)=CCC",
+        "answer": "ארבעה סטריאואיזומרים",
+        "distractors": [
+            "שני סטריאואיזומרים",
+            "שלושה סטריאואיזומרים",
+            "חמישה סטריאואיזומרים"
+        ],
+        "topic": "Stereochemistry",
+        "sourceExam": "2024 Moed A"
+    },
+    {
+        "text": "מהו הסידור הנכון לריאקטיביות המולקולות הבאות כלפי תגובת התמרה במנגנון Sn1? למשל, אם 1 הריאקטיבי ביותר ו- 4 הכי פחות ריאקטיבי, הסדר הוא 4<3<2<1.",
+        "hasImage": true,
+        "visualDescription": "Four molecules are shown, labeled A, B, C, and D. Molecule A is 1-chloro-1-methylcyclohexane. Molecule B is (1-bromoethyl)benzene. Molecule C is 1-chloro-4-methylcyclohexane. Molecule D is 1-chloro-2-butene (crotyl chloride).",
+        "smiles": "CC1(Cl)CCCCC1",
+        "answer": "B > A > D > C",
+        "distractors": [
+            "A > B > C > D",
+            "B > D > C > A",
+            "C > B > A > D"
+        ],
+        "topic": "SN1/SN2",
+        "sourceExam": "2024 Moed A"
+    },
+    {
+        "text": "הקיפו \"נכון\"/\"לא נכון\" עבור כל אחד מההיגדים הבאים:\nא. בתגובות אלימינציה של אלקיל הלידים, האלקן שיתקבל בעודף יהיה תמיד האלקן המותמר ביותר מפני שהוא האלקן היציב ביותר.",
+        "hasImage": false,
+        "visualDescription": null,
+        "smiles": null,
+        "answer": "לא נכון",
+        "distractors": [
+            "נכון",
+            "נכון חלקית",
+            "תלוי בממס"
+        ],
+        "topic": "Elimination Reactions",
+        "sourceExam": "2024 Moed A"
+    },
+    {
+        "text": "הקיפו \"נכון\"/\"לא נכון\" עבור כל אחד מההיגדים הבאים:\nב. לציקלוהקסאן המותמר בשתי קבוצות אתיל (ethyl), האחת בעמדה אקסיאלית והשניה בעמדה אקווטוריאלית, יש שני קונפורמרים בעלי יציבות זהה.",
+        "hasImage": false,
+        "visualDescription": null,
+        "smiles": null,
+        "answer": "לא נכון",
+        "distractors": [
+            "נכון",
+            "נכון רק לאיזומר ה-cis",
+            "נכון רק לאיזומר ה-trans"
+        ],
+        "topic": "Conformational Analysis",
+        "sourceExam": "2024 Moed A"
+    },
+    {
+        "text": "הקיפו \"נכון\"/\"לא נכון\" עבור כל אחד מההיגדים הבאים:\nג. בתמיסה מימית, קטון ימצא בשיווי משקל עם צורון האנול.",
+        "hasImage": false,
+        "visualDescription": null,
+        "smiles": null,
+        "answer": "נכון",
+        "distractors": [
+            "לא נכון",
+            "נכון רק בקטונים א-ציקליים",
+            "נכון רק בסביבה בסיסית"
+        ],
+        "topic": "Keto-Enol Tautomerism",
+        "sourceExam": "2024 Moed A"
+    },
+    {
+        "text": "הקיפו \"נכון\"/\"לא נכון\" עבור כל אחד מההיגדים הבאים:\nד. תגובת הידרוליזה של אמיד לקבלת אמין וחומצה קרבוקסילית קשה יותר לביצוע, בהשוואה להידרוליזה של אסטרים, בגלל הרזוננס המתקיים בין החנקן לחמצן הקרבונילי.",
+        "hasImage": false,
+        "visualDescription": null,
+        "smiles": null,
+        "answer": "לא נכון",
+        "distractors": [
+            "נכון",
+            "קשה פחות לביצוע",
+            "הקושי זהה"
+        ],
+        "topic": "Carboxylic Acid Derivatives",
+        "sourceExam": "2024 Moed A"
+    },
+    {
+        "text": "ציירו את התוצרים העיקריים עבור ארבע התגובות הבאות (תוצר סופי בלבד, ללא מנגנון!) תוך מתן דגש לסטריאוכימיה המתקבלת במידת הצורך.\nא. בנזן מגיב עם Cl2 ו-FeCl3.",
+        "hasImage": true,
+        "visualDescription": "Reaction scheme showing benzene reacting with chlorine gas (Cl2) in the presence of an iron(III) chloride (FeCl3) catalyst.",
+        "smiles": "c1ccccc1",
+        "answer": "c1ccc(Cl)cc1",
+        "distractors": [
+            "c1c(Cl)c(Cl)cccc1",
+            "C1(Cl)C=CC(Cl)C=C1",
+            "לא מתרחשת תגובה"
+        ],
+        "topic": "Electrophilic Aromatic Substitution",
+        "sourceExam": "2024 Moed A"
+    },
+    {
+        "text": "ציירו את התוצרים העיקריים עבור ארבע התגובות הבאות (תוצר סופי בלבד, ללא מנגנון!) תוך מתן דגש לסטריאוכימיה המתקבלת במידת הצורך.\nב. 1,2-דימתילציקלופנטן מגיב עם H2 ו-Pt.",
+        "hasImage": true,
+        "visualDescription": "A five-membered ring with an internal double bond, with one methyl group on each of the double-bonded carbons (1,2-dimethylcyclopentene), reacts with hydrogen gas (H2) over a platinum (Pt) catalyst.",
+        "smiles": "CC1=C(C)CCC1",
+        "answer": "C[C@H]1CCC[C@@H]1C",
+        "distractors": [
+            "C[C@H]1CCC[C@H]1C",
+            "CC1(C)CCCC1",
+            "לא מתרחשת תגובה"
+        ],
+        "topic": "Alkene Reactions",
+        "sourceExam": "2024 Moed A"
+    },
+    {
+        "text": "ציירו את התוצרים העיקריים עבור ארבע התגובות הבאות (תוצר סופי בלבד, ללא מנגנון!) תוך מתן דגש לסטריאוכימיה המתקבלת במידת הצורך.\nג. 3-מתיל-2-פנטן מגיב עם HCl.",
+        "hasImage": true,
+        "visualDescription": "Reaction scheme showing 3-methyl-2-pentene reacting with hydrochloric acid (HCl).",
+        "smiles": "CCC(C)=CC",
+        "answer": "CCC(C)(Cl)CC",
+        "distractors": [
+            "CCC(C)C(Cl)C",
+            "ClCCC(C)CC",
+            "CCC(=C)C(Cl)C"
+        ],
+        "topic": "Alkene Reactions",
+        "sourceExam": "2024 Moed A"
+    },
+    {
+        "text": "ציירו את התוצרים העיקריים עבור ארבע התגובות הבאות (תוצר סופי בלבד, ללא מנגנון!) תוך מתן דגש לסטריאוכימיה המתקבלת במידת הצורך.\nד. הפטאן-1,7-דיאל מגיב עם OH- וחום.",
+        "hasImage": true,
+        "visualDescription": "Reaction scheme showing heptane-1,7-dial reacting with hydroxide ion (OH-) and heat.",
+        "smiles": "O=CCCCCCC=O",
+        "answer": "O=Cc1ccccc1",
+        "distractors": [
+            "O=C1CCCC(O)C1",
+            "O=C1CCCCC1=O",
+            "O=CC1=CCCCC1"
+        ],
+        "topic": "Aldol Condensation",
+        "sourceExam": "2024 Moed A"
+    },
+    {
+        "text": "ציירו את המנגנון המלא עבור התגובה הכימית המתוארת מטה לקבלת התוצר הנתון בימין. יש לפרט עבור כל שלב: חצים, מעברי אלקטרונים רלוונטים, מבנים רזונטיביים, מטענים, וסטריאוכימיה במידת הצורך.",
+        "hasImage": true,
+        "visualDescription": "The overall reaction is the acid-catalyzed hydrolysis of ethyl 3-methylbutanoate with water to form 3-methylbutanoic acid and ethanol. The question requires drawing the full reaction mechanism.",
+        "smiles": "CCOC(=O)CC(C)C",
+        "answer": "התוצרים הם חומצה 3-מתיל-בטאנואית ואתנול.",
+        "distractors": [
+            "התוצרים הם 3-מתיל-1-בוטאנול וחומצה אתנואית.",
+            "התוצרים הם 2-מתיל-1-בוטאנול וחומצה אתנואית.",
+            "לא מתרחשת תגובה."
+        ],
+        "topic": "Reaction Mechanisms",
+        "sourceExam": "2024 Moed A"
+    },
+    {
+        "text": "בטבלה שלפניכם, מצוינת ההתפלגות בין התוצרים כפונקציה של הנוקליאופיל / הבסיס שהגיב. השלימו את הטבלה וציינו בטור שכותרתו \"מנגנון\" את מנגנון תגובה שהוביל לקבלת התוצר העיקרי.",
+        "hasImage": true,
+        "visualDescription": "A table shows the reaction of 2-bromo-2,3-dimethylbutane with three different nucleophile/bases: (CH3)3CO-, CH3CO-, and OH-. For each, the percentage of substitution and elimination (Zaitsev) product is given. The task is to fill in the mechanism (e.g., SN1, SN2, E1, E2) for the major pathway.",
+        "smiles": "CC(C)C(C)(C)Br",
+        "answer": "עבור (CH3)3CO-, המנגנון הוא E2. עבור CH3CO-, המנגנון הוא SN1.",
+        "distractors": [
+            "עבור (CH3)3CO-, המנגנון הוא E1. עבור CH3CO-, המנגנון הוא SN1.",
+            "עבור (CH3)3CO-, המנגנון הוא E2. עבור CH3CO-, המנגנון הוא SN2.",
+            "עבור (CH3)3CO-, המנגנון הוא E1. עבור CH3CO-, המנגנון הוא SN2."
+        ],
+        "topic": "SN1/SN2/E1/E2 Competition",
+        "sourceExam": "2024 Moed A"
+    },
+    {
+        "text": "ציירו את נוסחת המבנה של תוצר ההתמרה ותוצר האלימינציה (השתמשו בקיצור Nu על מנת לציין את מיקום הקישור של הנוקליאופיל).",
+        "hasImage": true,
+        "visualDescription": "Two boxes are provided to draw the structures. The starting material is 2-bromo-2,3-dimethylbutane. The left box is for the elimination product, the right box is for the substitution product where 'Nu' represents the nucleophile.",
+        "smiles": "CC(C)C(C)(C)Br",
+        "answer": "תוצר אלימינציה: C(C)(C)=C(C)C. תוצר התמרה: CC(C)C(C)(C)Nu",
+        "distractors": [
+            "תוצר אלימינציה: C(C)C(=C)C(C)C. תוצר התמרה: CC(C)C(C)(C)Nu",
+            "תוצר אלימינציה: C(C)(C)=C(C)C. תוצר התמרה: BrC(C)(C)C(C)CNu",
+            "תוצר אלימינציה: C(C)C(=C)C(C)C. תוצר התמרה: BrC(C)(C)C(C)CNu"
+        ],
+        "topic": "SN1/SN2/E1/E2 Competition",
+        "sourceExam": "2024 Moed A"
+    },
+    {
+        "text": "בהנחה והתגובה תתרחש בנוכחות מים כנוקליאופיל / בסיס:\nא. תוצר האלימינציה יהיה [ זהה ל- / שונה מ- ] תוצר האלימינציה שצוין בסעיף ב'.",
+        "hasImage": false,
+        "visualDescription": null,
+        "smiles": "CC(C)C(C)(C)Br",
+        "answer": "זהה ל-",
+        "distractors": [
+            "שונה מ-",
+            "לא יתקבל תוצר אלימינציה",
+            "יתקבל תוצר הופמן"
+        ],
+        "topic": "SN1/SN2/E1/E2 Competition",
+        "sourceExam": "2024 Moed A"
+    },
+    {
+        "text": "בהנחה והתגובה תתרחש בנוכחות מים כנוקליאופיל / בסיס:\nב. תוצר ההתמרה יהיה [ פעיל / לא פעיל ] אופטית.",
+        "hasImage": false,
+        "visualDescription": null,
+        "smiles": "CC(C)C(C)(C)Br",
+        "answer": "לא פעיל",
+        "distractors": [
+            "פעיל",
+            "תערובת רצמית",
+            "תערובת דיאסטריאומרים"
+        ],
+        "topic": "Stereochemistry",
+        "sourceExam": "2024 Moed A"
+    },
+    {
+        "text": "השלימו בתרשים הזרימה שלפניכם את המגיבים והתוצרים העיקריים החסרים. יש לציין תנאים וזרזים הדרושים לקיום הריאקציה במידת הצורך.",
+        "hasImage": true,
+        "visualDescription": "A reaction scheme starts with 4-methyl-1-pentene. Step 1: reacts with Br2, hv. Step 2: product reacts with Base. Step 3: product reacts with HCl to give '2 products'. Step 4: product mixture reacts with Cl2. Several boxes for intermediates, reagents, and final product are empty and need to be filled.",
+        "smiles": "CC(C)CC=C",
+        "answer": "הבסיס הוא t-BuOK, תוצר הביניים השני הוא 4-מתיל-1,3-פנטאדיאן, תוצרי הסיפוח של HCl הם 4-כלורו-2-מתיל-2-פנטן ו-4-כלורו-4-מתיל-2-פנטן, והתוצר הסופי הוא 2,3,4-טריכלורו-2-מתילפנטאן.",
+        "distractors": [
+            "הבסיס הוא NaOH, תוצר הביניים השני הוא 4-מתיל-1,2-פנטאדיאן, תוצר הסיפוח של HCl הוא 3-כלורו-4-מתיל-1-פנטן, והתוצר הסופי הוא 1,2,3-טריכלורו-4-מתילפנטאן.",
+            "הבסיס הוא t-BuOK, תוצר הביניים השני הוא 2-מתיל-1,3-פנטאדיאן, תוצרי הסיפוח של HCl הם 4-כלורו-2-מתיל-2-פנטן, והתוצר הסופי הוא 2,3,4-טריכלורו-4-מתילפנטאן.",
+            "הבסיס הוא H2O, תוצר הביניים השני הוא 4-מתיל-1,3-פנטאדיאן, תוצר הסיפוח של HCl הוא 2-כלורו-2-מתיל-3-פנטן, והתוצר הסופי הוא 2,3,4-טריכלורו-2-מתילפנטאן."
+        ],
+        "topic": "Reaction Sequences",
+        "sourceExam": "2024 Moed A"
+    },
+    {
+        "text": "עבור כל זוג חומרים, ציינו בתוך הריבוע שבין החומרים סימן גדול/קטן או שווה ( < = > ) בהתאם לקריטריון המופיע בכל שאלה.\nא. יציבות המולקולה",
+        "hasImage": true,
+        "visualDescription": "A comparison of stability between two chair conformations of trans-1-bromo-4-methylcyclohexane. The conformer on the left has the bromine atom in an axial position and the methyl group in an axial position. The conformer on the right has the bromine atom in an equatorial position and the methyl group in an equatorial position. A 'less than' sign is drawn in the box between them.",
+        "smiles": "C[C@H]1CC[C@@H](Br)CC1",
+        "answer": "<",
+        "distractors": [
+            ">",
+            "=",
+            "לא ניתן לקבוע"
+        ],
+        "topic": "Conformational Analysis",
+        "sourceExam": "2024 Moed G"
+    },
+    {
+        "text": "עבור כל זוג חומרים, ציינו בתוך הריבוע שבין החומרים סימן גדול/קטן או שווה ( < = > ) בהתאם לקריטריון המופיע בכל שאלה.\nב. ערך pKa",
+        "hasImage": true,
+        "visualDescription": "A comparison of pKa values between two molecules. The molecule on the left is the anilinium ion (protonated aniline). The molecule on the right is the imidazolium ion (protonated imidazole). A 'greater than' sign is drawn in the box between them.",
+        "smiles": "[NH3+]c1ccccc1",
+        "answer": ">",
+        "distractors": [
+            "<",
+            "=",
+            "לא ניתן לקבוע"
+        ],
+        "topic": "Acids and Bases",
+        "sourceExam": "2024 Moed G"
+    },
+    {
+        "text": "עבור כל זוג חומרים, ציינו בתוך הריבוע שבין החומרים סימן גדול/קטן או שווה ( < = > ) בהתאם לקריטריון המופיע בכל שאלה.\nג. מסיסות במים",
+        "hasImage": true,
+        "visualDescription": "A comparison of water solubility between two molecules. The molecule on the left is thiophenol. The molecule on the right is phenol. A 'less than' sign is drawn in the box between them.",
+        "smiles": "c1ccc(cc1)S",
+        "answer": "<",
+        "distractors": [
+            ">",
+            "=",
+            "לא ניתן לקבוע"
+        ],
+        "topic": "Intermolecular Forces",
+        "sourceExam": "2024 Moed G"
+    },
+    {
+        "text": "מהי הסטריאוכימיה הנכונה עבור התוצר של התגובה הבאה?",
+        "hasImage": true,
+        "visualDescription": "A reaction scheme showing (2S,3S)-2-bromo-3-chlorobutane reacting with excess sodium cyanide (NaCN). The carbons are numbered 2 and 3.",
+        "smiles": "C[C@H](Cl)[C@@H](C)Br",
+        "answer": "2R,3S",
+        "distractors": [
+            "3R,4S",
+            "2S,3R",
+            "3R,4R"
+        ],
+        "topic": "SN1/SN2",
+        "sourceExam": "2024 Moed G"
+    },
+    {
+        "text": "מהו הסידור הנכון לריאקטיביות המולקולות הבאות כלפי תגובת התמרה במנגנון Sn2? למשל, אם 1 הריאקטיבי ביותר ו- 4 הכי פחות ריאקטיבי, הסדר הוא 4<3<2<1.",
+        "hasImage": true,
+        "visualDescription": "Four molecules are shown, labeled A, B, C, and D. Molecule A is iodobenzene. Molecule B is 2-bromobutane. Molecule C is 1-bromo-2,2-dimethylpropane (neopentyl bromide). Molecule D is 1-bromobutane.",
+        "smiles": "c1cccc(I)c1",
+        "answer": "A > C > D > B",
+        "distractors": [
+            "A > B > C > D",
+            "B > D > C > A",
+            "B > A > D > C"
+        ],
+        "topic": "SN1/SN2",
+        "sourceExam": "2024 Moed G"
+    },
+    {
+        "text": "הקיפו \"נכון\"/\"לא נכון\" עבור כל אחד מההיגדים הבאים:\nא. בתגובה בין אמין ראשוני לחומצה קרבוקסילית, החומצה תגרום לפרוטונציה של החמצן הקרבונילי והאמין יתפקד כנוקליאופיל.",
+        "hasImage": false,
+        "visualDescription": null,
+        "smiles": null,
+        "answer": "לא נכון",
+        "distractors": [
+            "נכון",
+            "נכון רק בסביבה בסיסית",
+            "נכון רק בסביבה חומצית"
+        ],
+        "topic": "Carboxylic Acid Derivatives",
+        "sourceExam": "2024 Moed G"
+    },
+    {
+        "text": "הקיפו \"נכון\"/\"לא נכון\" עבור כל אחד מההיגדים הבאים:\nב. לציקלוהקסאן המותמר פעם אחת בקבוצת tert-butyl, יש שני קונפורמרים במבנה כיסא, האחד יציב יותר מהשני.",
+        "hasImage": false,
+        "visualDescription": null,
+        "smiles": "CC(C)(C)C1CCCCC1",
+        "answer": "נכון",
+        "distractors": [
+            "לא נכון",
+            "יציבותם זהה",
+            "יש רק קונפורמר אחד"
+        ],
+        "topic": "Conformational Analysis",
+        "sourceExam": "2024 Moed G"
+    },
+    {
+        "text": "הקיפו \"נכון\"/\"לא נכון\" עבור כל אחד מההיגדים הבאים:\nג. בסביבה חומצית או בסיסית, חומצות קרבוקסיליות וכהלים יגיבו לקבלת אסטר.",
+        "hasImage": false,
+        "visualDescription": null,
+        "smiles": null,
+        "answer": "לא נכון",
+        "distractors": [
+            "נכון",
+            "נכון רק בסביבה בסיסית",
+            "נכון רק בסביבה חומצית"
+        ],
+        "topic": "Carboxylic Acid Derivatives",
+        "sourceExam": "2024 Moed G"
+    },
+    {
+        "text": "הקיפו \"נכון\"/\"לא נכון\" עבור כל אחד מההיגדים הבאים:\nד. בהתמרה אלקטרופילית ארומטית של טבעת בנזן, מתקבל תוצר ביניים טעון חיובית (קרבוקטיון) ולכן יש לוודא שלא מתקיים שיחלוף הכולל נדידה של אחד מפחמני הטבעת הארומטית.",
+        "hasImage": false,
+        "visualDescription": null,
+        "smiles": null,
+        "answer": "לא נכון",
+        "distractors": [
+            "נכון",
+            "רק אם המתמיר הוא מפעיל חזק",
+            "רק אם המתמיר הוא מכוון מטא"
+        ],
+        "topic": "Electrophilic Aromatic Substitution",
+        "sourceExam": "2024 Moed G"
+    },
+    {
+        "text": "ציירו את התוצרים העיקריים עבור ארבע התגובות הבאות (תוצר סופי בלבד, ללא מנגנון!) תוך מתן דגש לסטריאוכימיה המתקבלת במידת הצורך.\nא. 2-פלואורו-3-מתילפנטאן מגיב עם NaOH וחום.",
+        "hasImage": true,
+        "visualDescription": "Reaction scheme showing 2-fluoro-3-methylpentane reacting with sodium hydroxide (NaOH) and heat.",
+        "smiles": "CCC(C)C(C)F",
+        "answer": "CCC(C)=CC",
+        "distractors": [
+            "CC=C(C)CC",
+            "CCC(C)C(C)O",
+            "C/C(C)=C/CC"
+        ],
+        "topic": "Elimination Reactions",
+        "sourceExam": "2024 Moed G"
+    },
+    {
+        "text": "ציירו את התוצרים העיקריים עבור ארבע התגובות הבאות (תוצר סופי בלבד, ללא מנגנון!) תוך מתן דגש לסטריאוכימיה המתקבלת במידת הצורך.\nב. 1-מתילציקלוהקסן מגיב עם Br2 ו-H2O.",
+        "hasImage": true,
+        "visualDescription": "Reaction scheme showing 1-methylcyclohexene reacting with bromine (Br2) and water (H2O).",
+        "smiles": "CC1=CCCCC1",
+        "answer": "CC1(O)C(Br)CCCC1",
+        "distractors": [
+            "CC1(Br)C(Br)CCCC1",
+            "CC1(Br)C(O)CCCC1",
+            "CC1C(Br)C(Br)CCC1"
+        ],
+        "topic": "Alkene Reactions",
+        "sourceExam": "2024 Moed G"
+    },
+    {
+        "text": "ציירו את התוצרים העיקריים עבור ארבע התגובות הבאות (תוצר סופי בלבד, ללא מנגנון!) תוך מתן דגש לסטריאוכימיה המתקבלת במידת הצורך.\nג. אתיל בנזואט מגיב עם OH-.",
+        "hasImage": true,
+        "visualDescription": "Reaction scheme showing ethyl benzoate reacting with hydroxide ion (OH-). The products shown are the benzoate anion and ethanol.",
+        "smiles": "CCOC(=O)c1ccccc1",
+        "answer": "[O-]C(=O)c1ccccc1",
+        "distractors": [
+            "O=C(O)c1ccccc1",
+            "c1ccc(C(=O)O)cc1",
+            "לא מתרחשת תגובה"
+        ],
+        "topic": "Carboxylic Acid Derivatives",
+        "sourceExam": "2024 Moed G"
+    },
+    {
+        "text": "ציירו את התוצרים העיקריים עבור ארבע התגובות הבאות (תוצר סופי בלבד, ללא מנגנון!) תוך מתן דגש לסטריאוכימיה המתקבלת במידת הצורך.\nד. 2-מתיל-2-פרופאנול (tert-Butanol) מגיב עם HCl.",
+        "hasImage": true,
+        "visualDescription": "Reaction scheme showing 2-methyl-2-propanol reacting with hydrochloric acid (HCl).",
+        "smiles": "CC(C)(C)O",
+        "answer": "CC(C)(C)Cl",
+        "distractors": [
+            "CC(CO)C",
+            "C=C(C)C",
+            "לא מתרחשת תגובה"
+        ],
+        "topic": "SN1/SN2",
+        "sourceExam": "2024 Moed G"
+    },
+    {
+        "text": "ציירו את המנגנון המלא עבור התגובה הכימית המתוארת מטה לקבלת התוצר הנתון בימין. יש לפרט עבור כל שלב: חצים, מעברי אלקטרונים רלוונטים, מבנים רזונטיביים, מטענים, וסטריאוכימיה במידת הצורך.",
+        "hasImage": true,
+        "visualDescription": "The overall reaction is the acid-catalyzed intramolecular esterification (lactonization) of 5-hydroxy-2-methylhexanoic acid to form a six-membered lactone. The question requires drawing the full reaction mechanism.",
+        "smiles": "CC(O)CCCC(=O)O",
+        "answer": "המנגנון הוא אסטריפיקציה תוך-מולקולרית של פישר.",
+        "distractors": [
+            "המנגנון הוא סיפוח נוקלאופילי ואחריו אלימינציה.",
+            "המנגנון הוא התמרה נוקלאופילית אצילית.",
+            "המנגנון הוא תגובת SN2 תוך-מולקולרית."
+        ],
+        "topic": "Reaction Mechanisms",
+        "sourceExam": "2024 Moed G"
+    },
+    {
+        "text": "נתונה התגובה הבאה במהלכה האלקיל הליד המתואר בהיטל פישר עבר תגובת התמרה עם נוקליאופילים שונים (הנוקליאופיל מסומן בקיצור כ- Nu), לקבלת שני תוצרי התמרה שונים. בטבלה שלפניכם, מצוינת ההתפלגות בין תוצרי ההתמרה כפונקציה של הנוקליאופיל. השלימו את הטבלה וציינו בטור שכותרתו \"מנגנון\" את מנגנון תגובה שהוביל לקבלת התוצר העיקרי.",
+        "hasImage": true,
+        "visualDescription": "A Fischer projection of an alkyl bromide reacts with a generic nucleophile 'Nu' to give Product 1 and Product 2. A table shows the results for three different nucleophiles: NaNH2, NaOCH2CH3, and HOCH2CH3, giving the percentages of Product 1 and Product 2. The task is to determine the major reaction mechanism for each case.",
+        "smiles": "C[C@H](Br)[C@@H](C)C",
+        "answer": "1: SN2, 2: SN2, 3: SN1",
+        "distractors": [
+            "1: SN1, 2: SN2, 3: SN1",
+            "1: SN2, 2: SN1, 3: SN2",
+            "1: SN1, 2: SN1, 3: SN2"
+        ],
+        "topic": "SN1/SN2",
+        "sourceExam": "2024 Moed G"
+    },
+    {
+        "text": "ציירו את המבנה של שני התוצרים בעזרת היטל פישר והשתמשו בסימון Nu לציון מיקום הקישור של הנוקליאופיל. שימו לב: תוצר 2 מימין ותוצר 1 משמאל.",
+        "hasImage": true,
+        "visualDescription": "Two boxes are provided to draw the Fischer projections for Product 1 and Product 2 from the reaction of the alkyl bromide with nucleophile 'Nu'. The starting material's Fischer projection shows H on the left and Br on the right for the top chiral center, and H on the right and a methyl group on the left for the bottom chiral center, with methyl groups at the very top and bottom.",
+        "smiles": "C[C@@H](Br)C(C)C",
+        "answer": "תוצר 1 (היפוך): H משמאל, Nu מימין. תוצר 2 (שימור): H מימין, Nu משמאל.",
+        "distractors": [
+            "תוצר 1 (שימור): H מימין, Nu משמאל. תוצר 2 (היפוך): H משמאל, Nu מימין.",
+            "תוצר 1 (היפוך): H משמאל, Nu מימין. תוצר 2 (היפוך): H משמאל, Nu מימין.",
+            "תוצר 1 (שימור): H מימין, Nu משמאל. תוצר 2 (שימור): H מימין, Nu משמאל."
+        ],
+        "topic": "SN1/SN2",
+        "sourceExam": "2024 Moed G"
+    },
+    {
+        "text": "אם אטום הברום יוחלף באטום פלואור הקצב של [ תגובה מס' 3 / כל התגובות ] ישתנה.",
+        "hasImage": false,
+        "visualDescription": null,
+        "smiles": "C[C@@H](F)C(C)C",
+        "answer": "כל התגובות",
+        "distractors": [
+            "תגובה מס' 3",
+            "תגובות מס' 1 ו-2",
+            "הקצב לא ישתנה"
+        ],
+        "topic": "SN1/SN2",
+        "sourceExam": "2024 Moed G"
+    },
+    {
+        "text": "חימום התגובה [ יוביל / לא יוביל ] לקבלת תוצרים נוספים/אחרים.",
+        "hasImage": false,
+        "visualDescription": null,
+        "smiles": "C[C@@H](Br)C(C)C",
+        "answer": "יוביל",
+        "distractors": [
+            "לא יוביל",
+            "יוביל רק לתגובה 3",
+            "יוביל רק לתגובות 1 ו-2"
+        ],
+        "topic": "SN1/SN2/E1/E2 Competition",
+        "sourceExam": "2024 Moed G"
+    },
+    {
+        "text": "השלימו בתרשים הזרימה שלפניכם את המגיבים והתוצרים העיקריים החסרים. יש לציין תנאים וזרזים הדרושים לקיום הריאקציה במידת הצורך.",
+        "hasImage": true,
+        "visualDescription": "A reaction scheme starts with 2 equivalents of acetaldehyde reacting with hydroxide (OH-) to form an intermediate. This intermediate is heated to form a new product. This product then reacts with Br2 and hv light to form a product, which then reacts with another reagent (in a box) to form 2,3,4-tribromobutanal.",
+        "smiles": "CC=O",
+        "answer": "התוצר אחרי חימום הוא קרוטונאלדהיד (2-בוטנאל), והריאגנט החסר בתיבה הוא Br2.",
+        "distractors": [
+            "התוצר אחרי חימום הוא 3-הידרוקסיבוטנאל, והריאגנט החסר בתיבה הוא Br2.",
+            "התוצר אחרי חימום הוא קרוטונאלדהיד (2-בוטנאל), והריאגנט החסר בתיבה הוא HBr.",
+            "התוצר אחרי חימום הוא 1,3-בוטאדיאן, והריאגנט החסר בתיבה הוא Br2."
+        ],
+        "topic": "Reaction Sequences",
+        "sourceExam": "2024 Moed G"
+    },
+    {
+        "text": "עבור כל זוג חומרים, ציינו בתוך הריבוע שבין החומרים סימן גדול/קטן או שווה ( < = > ) בהתאם לקריטריון המופיע בכל שאלה.\nא. ערך pKa",
+        "hasImage": true,
+        "visualDescription": "A comparison of pKa values between two molecules. The molecule on the left is acrylic acid (propenoic acid). The molecule on the right is propanoic acid. A 'less than' sign is drawn in the box between them.",
+        "smiles": "C=CC(=O)O",
+        "answer": "<",
+        "distractors": [
+            ">",
+            "=",
+            "לא ניתן לקבוע"
+        ],
+        "topic": "Acids and Bases",
+        "sourceExam": "2024 Moed B"
+    },
+    {
+        "text": "עבור כל זוג חומרים, ציינו בתוך הריבוע שבין החומרים סימן גדול/קטן או שווה ( < = > ) בהתאם לקריטריון המופיע בכל שאלה.\nב. טמפרטורת רתיחה",
+        "hasImage": true,
+        "visualDescription": "A comparison of boiling points between two molecules. The molecule on the left is ethanethiol. The molecule on the right is ethanol. A 'less than' sign is drawn in the box between them.",
+        "smiles": "CCS",
+        "answer": "<",
+        "distractors": [
+            ">",
+            "=",
+            "לא ניתן לקבוע"
+        ],
+        "topic": "Intermolecular Forces",
+        "sourceExam": "2024 Moed B"
+    },
+    {
+        "text": "עבור כל זוג חומרים, ציינו בתוך הריבוע שבין החומרים סימן גדול/קטן או שווה ( < = > ) בהתאם לקריטריון המופיע בכל שאלה.\nג. יציבות המולקולה",
+        "hasImage": true,
+        "visualDescription": "A comparison of stability between two molecules. The molecule on the left is cyclopropenyl cation, a three-membered ring with a double bond and a positive charge on the third carbon. The molecule on the right is cyclopropenyl anion, a three-membered ring with a double bond and a negative charge and lone pair on the third carbon. A 'greater than' sign is drawn in the box between them.",
+        "smiles": "[c+]1cc1",
+        "answer": ">",
+        "distractors": [
+            "<",
+            "=",
+            "לא ניתן לקבוע"
+        ],
+        "topic": "Aromaticity",
+        "sourceExam": "2024 Moed B"
+    },
+    {
+        "text": "בהנחה שבמולקולות הבאות שלד הטבעת מישורי, ציינו מי מביניהן אינה ארומטית?",
+        "hasImage": true,
+        "visualDescription": "Four molecules are shown, labeled A, B, C, and D. Molecule A is cyclooctatetraene dianion, an 8-membered ring with 4 double bonds and a -2 charge. Molecule B is tropylium cation, a 7-membered ring with 3 double bonds and a positive charge. Molecule C is cyclobutadiene, a 4-membered ring with 2 double bonds. Molecule D is pyrrole, a 5-membered aromatic heterocycle containing nitrogen.",
+        "smiles": "C1=CC=CC=C1",
+        "answer": "C",
+        "distractors": [
+            "A",
+            "B",
+            "D"
+        ],
+        "topic": "Aromaticity",
+        "sourceExam": "2024 Moed B"
+    },
+    {
+        "text": "היחס בין שלוש המולקולות הבאות הוא:",
+        "hasImage": true,
+        "visualDescription": "Three molecules are shown, drawn as Fischer projections, and labeled 1, 2, and 3. All are isomers of 1-bromo-1-buten-3-ol. Molecule 1 has H and OH on the chiral center C3 and H and Br on the double bond C1. Molecule 2 is a stereoisomer of 1. Molecule 3 is another stereoisomer of 1.",
+        "smiles": "C=C(Br)C(O)C",
+        "answer": "1,2 – דיאסטריומרים, 1,3 - דיאסטריומרים",
+        "distractors": [
+            "1,2 – אננטיומרים, 1,3 – חומרים זהים",
+            "2,3 – חומרים זהים, 1,3 - אננטיומרים",
+            "1,2 – קונפורמרים, 2,3 – אננטיומרים"
+        ],
+        "topic": "Stereochemistry",
+        "sourceExam": "2024 Moed B"
+    },
+    {
+        "text": "הקיפו \"נכון\"/\"לא נכון\" עבור כל אחד מההיגדים הבאים:\nא. יון אלקוקסיד נפחי יתפקד טוב יותר כנוקליאופיל מאשר כבסיס (אלקוקסיד הוא הבסיס המצומד לכהל).",
+        "hasImage": false,
+        "visualDescription": null,
+        "smiles": null,
+        "answer": "לא נכון",
+        "distractors": [
+            "נכון",
+            "נכון רק בטמפרטורה נמוכה",
+            "נכון רק בממסים פרוטיים"
+        ],
+        "topic": "SN1/SN2/E1/E2 Competition",
+        "sourceExam": "2024 Moed B"
+    },
+    {
+        "text": "הקיפו \"נכון\"/\"לא נכון\" עבור כל אחד מההיגדים הבאים:\nב. ציקלוהקסאן במבנה סירה פחות יציב מציקלוהקסאן במבנה כיסא מפני שחלק מפחמני הטבעת נמצאים במצב staggered.",
+        "hasImage": false,
+        "visualDescription": null,
+        "smiles": "C1CCCCC1",
+        "answer": "לא נכון",
+        "distractors": [
+            "נכון",
+            "יציבותם זהה",
+            "מבנה סירה יציב יותר"
+        ],
+        "topic": "Conformational Analysis",
+        "sourceExam": "2024 Moed B"
+    },
+    {
+        "text": "הקיפו \"נכון\"/\"לא נכון\" עבור כל אחד מההיגדים הבאים:\nג. אלדהידים ו/או קטונים לא יגיבו אחד עם השני מפני שלאלדהידים וקטונים לא נושאים קבוצה עוזבת טובה הקשורה לפחמן הקרבונילי.",
+        "hasImage": false,
+        "visualDescription": null,
+        "smiles": null,
+        "answer": "לא נכון",
+        "distractors": [
+            "נכון",
+            "יגיבו רק בנוכחות חומצה",
+            "יגיבו רק בנוכחות בסיס"
+        ],
+        "topic": "Aldol Condensation",
+        "sourceExam": "2024 Moed B"
+    },
+    {
+        "text": "הקיפו \"נכון\"/\"לא נכון\" עבור כל אחד מההיגדים הבאים:\nד. בתגובת סיפוח של HBr ל-1,3-butadiene יתקבלו כתוצרים שני איזומרים מבניים.",
+        "hasImage": false,
+        "visualDescription": null,
+        "smiles": "C=CC=C",
+        "answer": "נכון",
+        "distractors": [
+            "לא נכון",
+            "יתקבל רק תוצר 1,2-סיפוח",
+            "יתקבל רק תוצר 1,4-סיפוח"
+        ],
+        "topic": "Conjugated Systems",
+        "sourceExam": "2024 Moed B"
+    },
+    {
+        "text": "ציירו את התוצרים העיקריים עבור ארבע התגובות הבאות (תוצר סופי בלבד, ללא מנגנון!) תוך מתן דגש לסטריאוכימיה המתקבלת במידת הצורך.\nא. חומצה קרוטונית ((E)-But-2-enoic acid) מגיבה עם אמוניה (NH2).",
+        "hasImage": true,
+        "visualDescription": "Reaction scheme showing (E)-But-2-enoic acid reacting with ammonia (NH2).",
+        "smiles": "C/C=C/C(=O)O",
+        "answer": "C/C=C/C(=O)[O-].[NH4+]",
+        "distractors": [
+            "C/C=C/C(=O)N",
+            "NC(C)CC(=O)O",
+            "CC(N)CC(=O)O"
+        ],
+        "topic": "Acids and Bases",
+        "sourceExam": "2024 Moed B"
+    },
+    {
+        "text": "ציירו את התוצרים העיקריים עבור ארבע התגובות הבאות (תוצר סופי בלבד, ללא מנגנון!) תוך מתן דגש לסטריאוכימיה המתקבלת במידת הצורך.\nב. 1-יודופרופאן מגיב עם נתרן אתוקסיד (CH3CH2O- Na+).",
+        "hasImage": true,
+        "visualDescription": "Reaction scheme showing 1-iodopropane reacting with sodium ethoxide.",
+        "smiles": "CCCI",
+        "answer": "CCOCC",
+        "distractors": [
+            "CC=C",
+            "CCCO",
+            "לא מתרחשת תגובה"
+        ],
+        "topic": "SN1/SN2",
+        "sourceExam": "2024 Moed B"
+    },
+    {
+        "text": "ציירו את התוצרים העיקריים עבור ארבע התגובות הבאות (תוצר סופי בלבד, ללא מנגנון!) תוך מתן דגש לסטריאוכימיה המתקבלת במידת הצורך.\nג. 2 שווי ערך של פינאקולון (3,3-Dimethyl-2-butanone) מגיבים עם OH-.",
+        "hasImage": true,
+        "visualDescription": "Reaction scheme showing two equivalents of pinacolone reacting with hydroxide ion (OH-).",
+        "smiles": "CC(C)(C)C(=O)C",
+        "answer": "CC(C)(C)C(O)(C)CC(=O)C(C)(C)C",
+        "distractors": [
+            "CC(C)(C)C(O)=C",
+            "CC(C)(C)C(=O)C=C(O)C(C)(C)C",
+            "לא מתרחשת תגובה"
+        ],
+        "topic": "Aldol Condensation",
+        "sourceExam": "2024 Moed B"
+    },
+    {
+        "text": "ציירו את התוצרים העיקריים עבור ארבע התגובות הבאות (תוצר סופי בלבד, ללא מנגנון!) תוך מתן דגש לסטריאוכימיה המתקבלת במידת הצורך.\nד. (E)-1-bromo-2,4-dimethyl-2-pentene מגיב עם מים (H2O).",
+        "hasImage": true,
+        "visualDescription": "Reaction scheme showing (E)-1-bromo-2,4-dimethyl-2-pentene reacting with water.",
+        "smiles": "CC(C)C=C(C)CBr",
+        "answer": "CC(C)C=C(C)CO",
+        "distractors": [
+            "CC(C)C(O)C(=C)C",
+            "CC(C)C(O)C(C)CBr",
+            "CC(C)C(Br)=C(C)CO"
+        ],
+        "topic": "SN1/SN2",
+        "sourceExam": "2024 Moed B"
+    },
+    {
+        "text": "ציירו את המנגנון המלא עבור התגובה הכימית המתוארת מטה לקבלת התוצר הנתון בימין. יש לפרט עבור כל שלב: חצים, מעברי אלקטרונים רלוונטים, מבנים רזונטיביים, מטענים, וסטריאוכימיה במידת הצורך.",
+        "hasImage": true,
+        "visualDescription": "The overall reaction is the acid-catalyzed intramolecular esterification (lactonization) of 6-hydroxyhexanoic acid to form a seven-membered lactone (oxepan-2-one). The question requires drawing the full reaction mechanism.",
+        "smiles": "O=C(O)CCCCCO",
+        "answer": "המנגנון הוא אסטריפיקציה תוך-מולקולרית של פישר.",
+        "distractors": [
+            "המנגנון הוא סיפוח נוקלאופילי ואחריו אלימינציה.",
+            "המנגנון הוא התמרה נוקלאופילית אצילית.",
+            "המנגנון הוא תגובת SN2 תוך-מולקולרית."
+        ],
+        "topic": "Reaction Mechanisms",
+        "sourceExam": "2024 Moed B"
+    },
+    {
+        "text": "נתונה התגובה הבאה שבה הגיב אלקיל הליד לקבלת שני תוצרי אלימנציה שונים. בטבלה שלפניכם, מצוינת ההתפלגות בין התוצרים כפונקציה של אטום ההלוגן באלקיל הליד (מסומן באות X). השלימו את הטבלה וציינו בטור שכותרתו \"מנגנון\" את מנגנון תגובה שהוביל לקבלת התוצר העיקרי.",
+        "hasImage": true,
+        "visualDescription": "A reaction scheme shows a generic 2-halo-3-methylbutane reacting with a strong base under heat to yield Product 1 and Product 2. A table details the product distribution for X = Br, Cl, and F. For X=Br and Cl, Product 1 is the major product. For X=F, Product 2 is the major product. The task is to fill in the mechanism.",
+        "smiles": "CC(C)C(C)X",
+        "answer": "מנגנון E2 לכל השלושה.",
+        "distractors": [
+            "מנגנון E1 לכל השלושה.",
+            "Br, Cl: E2; F: E1cb",
+            "Br: E2; Cl, F: E1"
+        ],
+        "topic": "Elimination Reactions",
+        "sourceExam": "2024 Moed B"
+    },
+    {
+        "text": "ציירו את נוסחת המבנה של שני התוצרים. שימו לב: תוצר 2 מימין ותוצר 1 משמאל.",
+        "hasImage": true,
+        "visualDescription": "Two boxes are provided to draw the structures for Product 1 (left) and Product 2 (right) from the elimination reaction of 2-halo-3-methylbutane.",
+        "smiles": "CC(C)C(C)X",
+        "answer": "תוצר 1: 2-מתיל-2-בוטן (Zaitsev). תוצר 2: 3-מתיל-1-בוטן (Hofmann).",
+        "distractors": [
+            "תוצר 1: 3-מתיל-1-בוטן (Hofmann). תוצר 2: 2-מתיל-2-בוטן (Zaitsev).",
+            "תוצר 1: 2-מתיל-1-בוטן. תוצר 2: 2-מתיל-2-בוטן.",
+            "תוצר 1: 2,3-דימתיל-2-בוטן. תוצר 2: 2,3-דימתיל-1-בוטן."
+        ],
+        "topic": "Elimination Reactions",
+        "sourceExam": "2024 Moed B"
+    },
+    {
+        "text": "בהנחה ותגובת האלימינציה תתרחש בנוכחות מים כבסיס:\nא. התגובה עבור אלקיל פלואוריד [ תתרחש / לא תתרחש ] כפי שמתואר לעיל.",
+        "hasImage": false,
+        "visualDescription": null,
+        "smiles": "CC(C)C(C)F",
+        "answer": "לא תתרחש",
+        "distractors": [
+            "תתרחש",
+            "תתרחש אבל תיתן תוצר SN1",
+            "תתרחש במנגנון E1"
+        ],
+        "topic": "Elimination Reactions",
+        "sourceExam": "2024 Moed B"
+    },
+    {
+        "text": "בהנחה ותגובת האלימינציה תתרחש בנוכחות מים כבסיס:\nב. עבור אלקיל ברומיד תוצר 1 יהיה [ זהה ל- / שונה מ- ] תוצר 1 שצוין בסעיף ב'.",
+        "hasImage": false,
+        "visualDescription": null,
+        "smiles": "CC(C)C(C)Br",
+        "answer": "זהה ל-",
+        "distractors": [
+            "שונה מ-",
+            "לא יתקבל תוצר 1",
+            "יתקבל תוצר התמרה בלבד"
+        ],
+        "topic": "Elimination Reactions",
+        "sourceExam": "2024 Moed B"
+    },
+    {
+        "text": "השלימו בתרשים הזרימה שלפניכם את המגיבים והתוצרים העיקריים החסרים. יש לציין תנאים וזרזים הדרושים לקיום הריאקציה במידת הצורך.",
+        "hasImage": true,
+        "visualDescription": "A multi-step reaction sequence. Step 1: Benzamide reacts with HCl, heat, and H2O to form an intermediate. Step 2: This intermediate reacts with NaOH. Step 3: This product reacts with a reagent to form allyl benzoate. Step 4: Allyl benzoate reacts with Cl2 to form a final product.",
+        "smiles": "NC(=O)c1ccccc1",
+        "answer": "התוצר אחרי HCl, חום ומים הוא חומצה בנזואית. התוצר אחרי NaOH הוא נתרן בנזואט. המגיב ליצירת אליל בנזואט הוא אליל ברומיד (Br-CH2-CH=CH2).",
+        "distractors": [
+            "התוצר אחרי HCl, חום ומים הוא אנילין. התוצר אחרי NaOH הוא אנילין. המגיב ליצירת אליל בנזואט הוא אליל כלוריד.",
+            "התוצר אחרי HCl, חום ומים הוא חומצה בנזואית. התוצר אחרי NaOH הוא נתרן בנזואט. המגיב ליצירת אליל בנזואט הוא פרופן.",
+            "התוצר אחרי HCl, חום ומים הוא בנזאלדהיד. התוצר אחרי NaOH הוא בנזיל אלכוהול. המגיב ליצירת אליל בנזואט הוא אליל ברומיד."
+        ],
+        "topic": "Reaction Sequences",
+        "sourceExam": "2024 Moed B"
+    }
+]

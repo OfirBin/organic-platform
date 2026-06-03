@@ -18,30 +18,23 @@ import {
   ListOrdered,
   RefreshCw
 } from "lucide-react";
-import { generateExam, getAvailableYears } from "./actions";
+import { generateExam, getAvailableYears, availableTopics } from "./actions";
+import SmilesRenderer from "../components/SmilesRenderer";
 
 type Question = {
   id: string;
   text: string;
   hasImage?: boolean;
+  visualDescription?: string | null;
+  smiles?: string | null;
   options: string[];
   correctAnswer: string;
   explanation: string;
 };
 
-const availableTopics = [
-  "Alkanes & Cycloalkanes",
-  "Stereochemistry",
-  "Nucleophilic Substitution (SN1/SN2)",
-  "Elimination Reactions (E1/E2)",
-  "Alkenes & Alkynes",
-  "Aromaticity",
-  "Spectroscopy (NMR/IR)"
-];
-
 export default function SimulatorPage() {
   const [phase, setPhase] = useState<"setup" | "exam" | "review">("setup");
-  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
+  const [selectedTopics, setSelectedTopics] = useState<string[]>(availableTopics);
   const [feedbackMode, setFeedbackMode] = useState<"immediate" | "end">("immediate");
   
   // Setup Config State
@@ -358,6 +351,19 @@ export default function SimulatorPage() {
                 {currentQuestion.text}
               </h3>
               
+              {currentQuestion.smiles && (
+                <div className="w-full bg-white border border-sidebar-border rounded-xl p-4 flex justify-center items-center shadow-sm mb-6">
+                  <SmilesRenderer smiles={currentQuestion.smiles} id={`simulator-smiles-${currentQuestion.id}`} />
+                </div>
+              )}
+
+              {currentQuestion.visualDescription && (
+                <div className="p-4 bg-sidebar-item-active/50 border border-sidebar-border rounded-xl text-sm text-sidebar-text italic shadow-sm mb-6">
+                  <span className="font-semibold not-italic text-brand block mb-1">Visual Description</span>
+                  {currentQuestion.visualDescription}
+                </div>
+              )}
+
               {currentQuestion.hasImage && (
                 <div className="w-full h-32 bg-background border border-dashed border-sidebar-border rounded-xl flex flex-col items-center justify-center text-sidebar-text mt-auto">
                   <ImageIcon className="w-8 h-8 opacity-50 mb-2" />

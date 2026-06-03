@@ -1,13 +1,31 @@
-import { addQuestion, getQuestions, autoImportExam } from './actions'
+import { addQuestion, getQuestions, autoImportExam, getQuestionStats } from './actions'
 import { SubmitButton } from './SubmitButton'
 import { DeleteButton } from './DeleteButton'
 
 export default async function AdminPage() {
   const questions = await getQuestions()
+  const stats = await getQuestionStats()
 
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-8 text-black">
       
+      {/* Analytics Section */}
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+        <h2 className="text-2xl font-bold mb-4 text-gray-900">Questions per Subject</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-blue-50 border border-blue-100 p-4 rounded-lg">
+            <div className="text-blue-900 text-sm font-semibold mb-1">Total Questions</div>
+            <div className="text-3xl font-bold text-blue-700">{stats.total}</div>
+          </div>
+          {stats.grouped.map(stat => (
+            <div key={stat.topic} className="bg-gray-50 border border-gray-100 p-4 rounded-lg">
+              <div className="text-gray-600 text-sm font-semibold mb-1 truncate" title={stat.topic}>{stat.topic}</div>
+              <div className="text-2xl font-bold text-gray-800">{stat.count}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* AI Bulk Import Section */}
       <div className="bg-indigo-50 p-6 rounded-xl shadow-sm border border-indigo-100">
         <h2 className="text-2xl font-bold mb-2 text-indigo-900">AI Bulk Import</h2>
